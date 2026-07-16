@@ -1,0 +1,46 @@
+'use client'
+
+export default function ConfirmModal({
+  title, message, confirmLabel, confirmClass, icon, onConfirm, onCancel,
+}: {
+  title: string
+  message: string
+  confirmLabel: string
+  confirmClass?: string
+  icon: string
+  onConfirm: () => void
+  onCancel: () => void
+}) {
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onCancel}>
+      <div
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="bg-[#005696] p-6 text-center">
+          <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
+            <i className={`fas ${icon} text-2xl text-white`}></i>
+          </div>
+          <h3 className="text-white text-lg font-bold">{title}</h3>
+        </div>
+        <div className="p-6 text-center">
+          <p className="text-gray-600 text-sm mb-6">{message}</p>
+          <div className="flex gap-3">
+            <button
+              onClick={onCancel}
+              className="flex-1 py-2.5 rounded-xl border border-gray-300 text-gray-600 font-semibold text-sm hover:bg-gray-50 transition"
+            >
+              Batal
+            </button>
+            <button
+              onClick={onConfirm}
+              className={`flex-1 py-2.5 rounded-xl text-white font-semibold text-sm transition ${confirmClass || 'bg-[#005696] hover:bg-[#003d6e]'}`}
+            >
+              {confirmLabel}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
