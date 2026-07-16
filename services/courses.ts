@@ -32,13 +32,26 @@ export async function getAllCourses(): Promise<Course[]> {
   return res.json()
 }
 
-export async function getCourse(id: string): Promise<Course | null> {
+const courseCache = new Map<string, Course>()
+
+export function getCachedCourse(id: string): Course | null | undefined {
+  const key = String(id)
+  return courseCache.has(key) ? courseCache.get(key)! : undefined
+}
+
+export async function getCourse(id: string | number, force = false): Promise<Course | null> {
+  const key = String(id)
+  if (!force && courseCache.has(key)) return courseCache.get(key)!
+
+  const numericId = Number(id)
   const h = await authHeaders()
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/courses?select=*&id=eq.${id}`, {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/courses?select=*&id=eq.${numericId}`, {
     headers: { ...h, Accept: 'application/vnd.pgrst.object+json' },
   })
   if (!res.ok) return null
-  return res.json()
+  const data = (await res.json()) as Course | null
+  if (data) courseCache.set(key, data)
+  return data
 }
 
 export async function createCourse(input: Partial<Course>): Promise<Course> {
@@ -50,18 +63,26 @@ export async function createCourse(input: Partial<Course>): Promise<Course> {
 }
 
 export async function updateCourse(id: string, input: Partial<Course>): Promise<void> {
-  await fetch(`${SUPABASE_URL}/rest/v1/courses?id=eq.${id}`, {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/courses?id=eq.${id}`, {
     method: 'PATCH',
     headers: { ...(await authHeaders()), Prefer: 'return=minimal' },
     body: JSON.stringify({ ...input, updated_at: new Date().toISOString() }),
   })
+  if (!res.ok) {
+    const msg = await res.text().catch(() => '')
+    throw new Error(msg || `Gagal mengupdate course (${res.status})`)
+  }
 }
 
 export async function deleteCourse(id: string): Promise<void> {
-  await fetch(`${SUPABASE_URL}/rest/v1/courses?id=eq.${id}`, {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/courses?id=eq.${id}`, {
     method: 'DELETE',
     headers: await authHeaders(),
   })
+  if (!res.ok) {
+    const msg = await res.text().catch(() => '')
+    throw new Error(msg || `Gagal menghapus course (${res.status})`)
+  }
 }
 
 // Course Videos

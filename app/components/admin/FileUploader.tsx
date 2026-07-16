@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { uploadToGarage } from "@/services/garage";
+import { uploadToGarage, isUploadableFile } from "@/services/garage";
 
 interface FileUploaderProps {
   onUploadComplete: (url: string) => void;
@@ -9,13 +9,20 @@ interface FileUploaderProps {
   label?: string;
 }
 
-export default function FileUploader({ onUploadComplete, accept = "image/*", label = "Upload" }: FileUploaderProps) {
+const ALLOWED_ACCEPT = "image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.txt,.csv,.odt,.ods,.odp";
+
+export default function FileUploader({ onUploadComplete, accept = ALLOWED_ACCEPT, label = "Upload" }: FileUploaderProps) {
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (!isUploadableFile(file)) {
+      alert("Hanya file gambar atau dokumen yang diperbolehkan (video/tipe lain tidak didukung).");
+      if (inputRef.current) inputRef.current.value = "";
+      return;
+    }
     setUploading(true);
     try {
       const url = await uploadToGarage(file);

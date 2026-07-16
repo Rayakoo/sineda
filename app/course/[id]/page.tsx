@@ -4,20 +4,30 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import AuthGuard from '@/components/AuthGuard'
-import { getCourse } from '@/services/courses'
+import { getCourse, getCachedCourse } from '@/services/courses'
 import type { Course } from '@/types/course'
 
 export default function CourseDetailPage() {
   const params = useParams()
-  const [course, setCourse] = useState<Course | null>(null)
-  const [loading, setLoading] = useState(true)
+  const courseId = params.id as string
+  const [course, setCourse] = useState<Course | null>(getCachedCourse(courseId) ?? null)
+  const [loading, setLoading] = useState(!getCachedCourse(courseId))
 
   useEffect(() => {
-    getCourse(params.id as string).then((c) => {
+    let active = true
+    if (getCachedCourse(courseId)) {
+      setCourse(getCachedCourse(courseId)!)
+      setLoading(false)
+      return
+    }
+    setLoading(true)
+    getCourse(courseId).then((c) => {
+      if (!active) return
       setCourse(c)
       setLoading(false)
     })
-  }, [params.id])
+    return () => { active = false }
+  }, [courseId])
 
   if (loading) return <div className="flex-1 flex items-center justify-center py-32"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#005696]"></div></div>
 

@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { getCourse, createCourse, updateCourse, getCourseVideos, getCourseMaterials, getQuizzes, getCourseMinigames, deleteCourseVideo, deleteCourseMaterial, deleteQuiz, deleteCourseMinigame, saveSectionOrder } from '@/services/courses'
 import type { Course, CourseVideo, CourseMaterial, Quiz, CourseMinigame, OrderedSection } from '@/types/course'
+import FileUploader from '@/app/components/admin/FileUploader'
 
 const CATEGORIES = [
   { value: 'guru', label: 'Guru', desc: 'Untuk tenaga pendidik' },
@@ -323,6 +324,7 @@ export default function CourseEditorPage() {
                 />
               </div>
             )}
+            <FileUploader accept="image/*" label="Upload" onUploadComplete={(url) => setImage(url)} />
           </div>
         </div>
       </div>

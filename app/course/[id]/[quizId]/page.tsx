@@ -47,9 +47,7 @@ export default function QuizPage() {
       if (answers[question.id] === question.correct_answer) correct++
     })
     const score = Math.round((correct / questions.length) * 100)
-    if (user.role !== 'siswa_intervensi') {
-      await upsertQuizResult({ user_id: user.id, quiz_id: quiz.id, score, total: questions.length, passed: score >= 70 })
-    }
+    await upsertQuizResult({ user_id: user.id, quiz_id: quiz.id, score, total: questions.length, passed: score >= 70 })
     router.push(`/course/${params.id}/${quiz.id}/hasil?score=${score}&total=${questions.length}`)
   }
 

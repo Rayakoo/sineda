@@ -12,6 +12,8 @@ import {
   getCourseSections,
 } from "@/services/courses";
 import type { Quiz, QuizQuestion } from "@/types/course";
+import { transformImageUrl } from "@/lib/image";
+import FileUploader from "@/app/components/admin/FileUploader";
 
 interface QuestionState {
   id: number;
@@ -272,16 +274,23 @@ export default function QuizForm({ courseId, quizData, existingQuestions, onSucc
                 />
 
                 <div>
-                  <input
-                    type="text"
-                    value={q.imageUrl}
-                    onChange={(e) => handleImageUrl(q.id, e.target.value)}
-                    placeholder="URL gambar (opsional, untuk ditampilkan di soal)"
-                    className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-[#005696] placeholder-gray-300"
-                  />
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={q.imageUrl}
+                      onChange={(e) => handleImageUrl(q.id, e.target.value)}
+                      placeholder="URL gambar (opsional, untuk ditampilkan di soal)"
+                      className="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-[#005696] placeholder-gray-300"
+                    />
+                    <FileUploader
+                      accept="image/*"
+                      label="Upload"
+                      onUploadComplete={(url) => handleImageUrl(q.id, url)}
+                    />
+                  </div>
                   {q.imageUrl && (
                     <img
-                      src={q.imageUrl}
+                      src={transformImageUrl(q.imageUrl)}
                       alt="Preview"
                       className="mt-2 max-h-32 rounded-lg object-contain border border-gray-200"
                       onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}

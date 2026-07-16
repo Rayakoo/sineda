@@ -7,6 +7,7 @@ import TtsGridEditor, { type TtsCellData } from '@/app/components/admin/TtsGridE
 import FindWordGridEditor, { type FindWordItem } from '@/app/components/admin/FindWordGridEditor'
 import { buildRandomFillGrid } from '@/lib/grid-utils'
 import { getNextGlobalUrutanAndIncrement } from '@/services/courses'
+import { transformImageUrl } from '@/lib/image'
 import {
   getMinigameById, getTtsClues, getFindWords, getTrueFalseItems,
   getDrawings, getFillBlanks, getMatchPairs,
@@ -372,7 +373,7 @@ export default function MinigameForm({
                       <label className="text-xs text-gray-500">URL Gambar (opsional)</label>
                       <div className="flex gap-2">
                         <input type="url" value={item.image_url || ''} onChange={(e) => { const c = [...tfItems]; c[i] = { ...c[i], image_url: e.target.value }; setTfItems(c); }} className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm" />
-                        <FileUploader onUploadComplete={(url) => { const c = [...tfItems]; c[i] = { ...c[i], image_url: url }; setTfItems(c); }} />
+                        <FileUploader accept="image/*" onUploadComplete={(url) => { const c = [...tfItems]; c[i] = { ...c[i], image_url: url }; setTfItems(c); }} />
                       </div>
                     </div>
                     <div>
@@ -420,7 +421,7 @@ export default function MinigameForm({
                     <label className="text-xs text-gray-500">URL Gambar Dasar (base image)</label>
                     <div className="flex gap-2">
                       <input type="url" value={dw.base_image_url || ''} onChange={(e) => { const c = [...drawings]; c[i] = { ...c[i], base_image_url: e.target.value }; setDrawings(c); }} className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm" />
-                      <FileUploader onUploadComplete={(url) => { const c = [...drawings]; c[i] = { ...c[i], base_image_url: url }; setDrawings(c); }} />
+                      <FileUploader accept="image/*" onUploadComplete={(url) => { const c = [...drawings]; c[i] = { ...c[i], base_image_url: url }; setDrawings(c); }} />
                     </div>
                   </div>
                 </div>
@@ -452,11 +453,11 @@ export default function MinigameForm({
                     <label className="text-xs text-gray-500">URL Gambar (opsional)</label>
                     <div className="flex gap-2">
                       <input type="url" value={fb.image_url || ''} onChange={(e) => { const c = [...fillBlanks]; c[i] = { ...c[i], image_url: e.target.value }; setFillBlanks(c); }} className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm" />
-                      <FileUploader onUploadComplete={(url) => { const c = [...fillBlanks]; c[i] = { ...c[i], image_url: url }; setFillBlanks(c); }} />
+                      <FileUploader accept="image/*" onUploadComplete={(url) => { const c = [...fillBlanks]; c[i] = { ...c[i], image_url: url }; setFillBlanks(c); }} />
                     </div>
                     {fb.image_url && (
                       <div className="mt-2">
-                        <img src={fb.image_url} alt="" className="w-full max-w-sm rounded-xl border border-gray-200 bg-gray-50" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                        <img src={transformImageUrl(fb.image_url)} alt="" className="w-full max-w-sm rounded-xl border border-gray-200 bg-gray-50" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
                       </div>
                     )}
                   </div>
@@ -521,7 +522,7 @@ export default function MinigameForm({
                           <label className="text-xs text-gray-500">URL Gambar (opsional)</label>
                           <div className="flex gap-2">
                             <input type="url" value={item.image_url || ''} onChange={(e) => { const c = [...matchPairs]; c[i].items[ii] = { ...c[i].items[ii], image_url: e.target.value }; setMatchPairs(c); }} className="flex-1 bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm" />
-                            <FileUploader onUploadComplete={(url) => { const c = [...matchPairs]; c[i].items[ii] = { ...c[i].items[ii], image_url: url }; setMatchPairs(c); }} />
+                            <FileUploader accept="image/*" onUploadComplete={(url) => { const c = [...matchPairs]; c[i].items[ii] = { ...c[i].items[ii], image_url: url }; setMatchPairs(c); }} />
                           </div>
                         </div>
                         <div>
@@ -716,7 +717,7 @@ export default function MinigameForm({
                         tfItems.map((item, i) => (
                           <div key={i} className="bg-blue-50 rounded-2xl p-4 flex items-start gap-4">
                             {item.image_url && (
-                              <img src={item.image_url} alt="" className="w-20 h-20 rounded-xl object-contain bg-gray-100 shrink-0" />
+                              <img src={transformImageUrl(item.image_url)} alt="" className="w-20 h-20 rounded-xl object-contain bg-gray-100 shrink-0" />
                             )}
                             <div>
                               <p className="text-sm font-bold text-gray-800">{item.title}</p>
@@ -741,7 +742,7 @@ export default function MinigameForm({
                           <div key={i} className="bg-blue-50 rounded-2xl p-4">
                             <p className="text-sm font-bold text-gray-800 mb-3">{dw.question}</p>
                             {dw.base_image_url && (
-                              <img src={dw.base_image_url} alt="" className="w-full max-w-md rounded-xl border border-gray-200" />
+                              <img src={transformImageUrl(dw.base_image_url)} alt="" className="w-full max-w-md rounded-xl border border-gray-200" />
                             )}
                           </div>
                         ))
@@ -757,7 +758,7 @@ export default function MinigameForm({
                         fillBlanks.map((fb, i) => (
                           <div key={i} className="bg-blue-50 rounded-2xl p-4">
                             <p className="text-sm font-bold text-gray-800 mb-3">{fb.question}</p>
-                            {fb.image_url && <img src={fb.image_url} alt="" className="w-full max-w-md rounded-xl border border-gray-200 mb-3" />}
+                            {fb.image_url && <img src={transformImageUrl(fb.image_url)} alt="" className="w-full max-w-md rounded-xl border border-gray-200 mb-3" />}
                             <div className="flex flex-wrap gap-2">
                               {fb.answers.map((ans, ai) => (
                                 <div key={ai} className="min-w-[100px] bg-white border border-dashed border-gray-300 rounded-lg px-3 py-2 text-center">
@@ -784,7 +785,7 @@ export default function MinigameForm({
                               {mp.items.map((item, ii) => (
                                 <div key={ii} className="bg-white rounded-xl p-3 border border-gray-200 text-center">
                                   {item.image_url && (
-                                    <img src={item.image_url} alt="" className="w-full h-20 object-contain bg-gray-50 rounded-lg mb-2" />
+                                    <img src={transformImageUrl(item.image_url)} alt="" className="w-full h-20 object-contain bg-gray-50 rounded-lg mb-2" />
                                   )}
                                   <p className="text-xs font-bold text-gray-700">{item.card_title}</p>
                                   <span className="text-[10px] text-gray-400">Kode: {item.pair_code}</span>

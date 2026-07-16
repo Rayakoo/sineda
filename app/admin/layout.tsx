@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext'
 const NAV_ITEMS = [
   { label: 'Dashboard', href: '/admin', icon: 'fa-chart-pie' },
   { label: 'Kelola Course', href: '/admin/courses', icon: 'fa-book' },
+  { label: 'Laporan Siswa', href: '/admin/reports', icon: 'fa-chart-bar' },
   { label: 'Kelola Users', href: '/admin/users', icon: 'fa-users-cog' },
 ]
 

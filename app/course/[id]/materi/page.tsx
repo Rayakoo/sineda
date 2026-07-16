@@ -4,7 +4,10 @@ import { useEffect, useState, useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import AuthGuard from '@/components/AuthGuard'
-import { getCourse, getCourseVideos, getCourseMaterials, getQuizzes, getCourseMinigames } from '@/services/courses'
+import { getCourse, getCachedCourse, getCourseVideos, getCourseMaterials, getQuizzes, getCourseMinigames } from '@/services/courses'
+import { enrollCourse, updateProgress } from '@/services/userCourses'
+import { getProxiedUrl } from '@/services/garage'
+import { transformImageUrl } from '@/lib/image'
 import { useAuth } from '@/contexts/AuthContext'
 import type { Course, CourseVideo, CourseMaterial, Quiz, CourseMinigame, OrderedSection } from '@/types/course'
 
@@ -29,6 +32,7 @@ const sectionIcon = (type: string) => {
 export default function MateriPage() {
   const params = useParams()
   const courseId = params.id as string
+  const { user } = useAuth()
 
   const [course, setCourse] = useState<Course | null>(null)
   const [videos, setVideos] = useState<CourseVideo[]>([])
@@ -50,18 +54,33 @@ export default function MateriPage() {
   }, [videos, materials, quizzes, minigames])
 
   useEffect(() => {
+    let active = true
+    const cachedCourse = getCachedCourse(courseId)
     Promise.all([
-      getCourse(courseId), getCourseVideos(courseId), getCourseMaterials(courseId),
+      cachedCourse ? Promise.resolve(cachedCourse) : getCourse(courseId),
+      getCourseVideos(courseId), getCourseMaterials(courseId),
       getQuizzes(courseId), getCourseMinigames(courseId),
     ]).then(([c, v, m, q, g]) => {
-      setCourse(c); setVideos(v); setMaterials(m); setQuizzes(q); setCourseMinigames(g)
+      if (!active) return
+      setCourse(c as any); setVideos(v); setMaterials(m); setQuizzes(q); setCourseMinigames(g)
       setLoading(false)
     })
+    return () => { active = false }
   }, [courseId])
 
   useEffect(() => {
     if (sections.length > 0 && !currentSection) setCurrentSection(sections[0])
   }, [sections, currentSection])
+
+  useEffect(() => {
+    if (!user || !courseId) return
+    enrollCourse(user.id, courseId)
+  }, [user, courseId])
+
+  useEffect(() => {
+    if (!user || !courseId || !currentSection) return
+    updateProgress(user.id, courseId, currentSection.urutan)
+  }, [user, courseId, currentSection])
 
   if (loading) return <div className="flex-1 flex items-center justify-center py-32"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#005696]"></div></div>
 
@@ -94,7 +113,20 @@ export default function MateriPage() {
             ) : null })()
           ) : currentSection.type === 'materi' ? (
             (() => { const m = materials.find((x) => x.id === currentSection!.id); return m ? (
-              <div><h2 className="text-xl font-bold text-gray-800 mb-4">{m.title}</h2><div className="prose prose-sm max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: m.content }} />{m.file_url && <a href={m.file_url} target="_blank" className="inline-flex items-center gap-2 mt-4 bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium text-[#005696] hover:bg-gray-200"><i className="fas fa-download"></i> Download File</a>}</div>
+              <div><h2 className="text-xl font-bold text-gray-800 mb-4">{m.title}</h2><div className="prose prose-sm max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: m.content }} />{m.file_url && (() => {
+                const rawUrl = m.file_url
+                const proxied = getProxiedUrl(rawUrl)
+                const url = proxied || rawUrl
+                const driveId = rawUrl.match(/\/file\/d\/([^/?#]+)/)?.[1]
+                const isPdf = rawUrl.match(/\.pdf(\?|$)/i) || url.match(/\.pdf(\?|$)/i)
+                if (driveId) {
+                  return <iframe src={`https://drive.google.com/file/d/${driveId}/preview`} className="w-full h-[70vh] rounded-xl border border-gray-200 mt-4" title="File Preview" />
+                }
+                if (isPdf) {
+                  return <iframe src={url} className="w-full h-[70vh] rounded-xl border border-gray-200 mt-4" title="File Preview" />
+                }
+                return <a href={url} target="_blank" className="inline-flex items-center gap-2 mt-4 bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium text-[#005696] hover:bg-gray-200"><i className="fas fa-download"></i> Download File</a>
+              })()}</div>
             ) : null })()
           ) : currentSection.type === 'quiz' ? (
             (() => { const q = quizzes.find((x) => x.id === currentSection!.id); return q ? (
