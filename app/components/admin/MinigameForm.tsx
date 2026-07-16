@@ -17,6 +17,8 @@ import {
   MINIGAME_TYPE_LABELS, MINIGAME_TYPE_ICONS,
   type CourseMinigame, type MinigameType,
   type TrueFalseItem,
+  type Drawing,
+  type FillBlank,
   type MatchPairItem,
 } from '@/services/course-minigames'
 import ConfirmModal from '@/app/components/ConfirmModal'

@@ -152,7 +152,7 @@ export default function QuizForm({ courseId, quizData, existingQuestions, onSucc
             options: q.options,
             correct_answer: q.correctAnswer,
             urutan: i,
-            image_url: q.imageUrl || null,
+            image_url: q.imageUrl || undefined,
           });
         } else {
           submittedIds.add(q.tempId);
@@ -161,7 +161,7 @@ export default function QuizForm({ courseId, quizData, existingQuestions, onSucc
             options: q.options,
             correct_answer: q.correctAnswer,
             urutan: i,
-            image_url: q.imageUrl || null,
+            image_url: q.imageUrl || undefined,
           });
         }
       }

@@ -325,7 +325,7 @@ export async function saveMatchPairs(
     .from("minigame_match_pairs")
     .select("id")
     .eq("minigame_id", minigameId)
-  const ids = existingPairs?.map((p) => p.id) ?? []
+  const ids = (existingPairs as { id: string }[] | null)?.map((p) => p.id) ?? []
   for (const pid of ids) {
     await fetch(
       `${SUPABASE_URL}/rest/v1/minigame_match_pair_items?match_pairs_id=eq.${pid}`,

@@ -11,7 +11,7 @@ const headers = (token?: string) => ({
 })
 
 async function authHeaders() {
-  const token = await getAccessToken().catch(() => null)
+  const token = await getAccessToken().catch(() => undefined)
   return headers(token)
 }
 
@@ -166,6 +166,15 @@ export async function saveSectionOrder(courseId: string, sections: OrderedSectio
 }
 
 // Quizzes
+export async function getQuiz(quizId: string): Promise<Quiz | null> {
+  const { data } = await getSupabase()
+    .from('quizzes')
+    .select('*')
+    .eq('id', quizId)
+    .single()
+  return data
+}
+
 export async function getQuizzes(courseId: string): Promise<Quiz[]> {
   const { data } = await getSupabase()
     .from('quizzes')
@@ -286,21 +295,23 @@ export async function getNextUrutan(courseId: number): Promise<number> {
     .eq('course_id', courseId)
     .order('urutan', { ascending: false })
     .limit(1)
-  return (data?.[0]?.urutan || 0) + 1
+  const rows = data as { urutan: number }[] | null
+  return (rows?.[0]?.urutan || 0) + 1
 }
 
 export async function getNextGlobalUrutanAndIncrement(courseId: string): Promise<number> {
   const tables = ['course_videos', 'course_materials', 'quizzes', 'course_minigames'] as const
   let maxUrutan = 0
   for (const table of tables) {
-    const { data } = await getSupabase()
+      const { data } = await getSupabase()
       .from(table)
       .select('urutan')
       .eq('course_id', courseId)
       .order('urutan', { ascending: false })
       .limit(1)
-    if (data && data[0]?.urutan > maxUrutan) {
-      maxUrutan = data[0].urutan
+    const rows = data as { urutan: number }[] | null
+    if (rows && rows[0]?.urutan > maxUrutan) {
+      maxUrutan = rows[0].urutan
     }
   }
   return maxUrutan + 1

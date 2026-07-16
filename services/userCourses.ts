@@ -13,14 +13,14 @@ async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
   return res.json()
 }
 
-export async function enrollCourse(userId: string, courseId: number): Promise<UserCourse> {
+export async function enrollCourse(userId: string, courseId: string): Promise<UserCourse> {
   return apiFetch<UserCourse>('/api/user-courses', {
     method: 'POST',
     body: JSON.stringify({ user_id: userId, course_id: courseId }),
   })
 }
 
-export async function getUserCourse(userId: string, courseId: number): Promise<UserCourse | null> {
+export async function getUserCourse(userId: string, courseId: string): Promise<UserCourse | null> {
   const courses = await apiFetch<UserCourse[]>(`/api/user-courses?user_id=${userId}`)
   return courses.find((c) => c.course_id === courseId) || null
 }
@@ -29,14 +29,14 @@ export async function getUserCourses(userId: string): Promise<(UserCourse & { co
   return apiFetch(`/api/user-courses?user_id=${userId}`)
 }
 
-export async function updateProgress(userId: string, courseId: number, urutan: number): Promise<void> {
+export async function updateProgress(userId: string, courseId: string, urutan: number): Promise<void> {
   await apiFetch(`/api/user-courses/${courseId}`, {
     method: 'PATCH',
     body: JSON.stringify({ user_id: userId, current_urutan: urutan }),
   })
 }
 
-export async function completeCourse(userId: string, courseId: number): Promise<void> {
+export async function completeCourse(userId: string, courseId: string): Promise<void> {
   await apiFetch(`/api/user-courses/${courseId}`, {
     method: 'PATCH',
     body: JSON.stringify({ user_id: userId, is_completed: true, completed_at: new Date().toISOString() }),
@@ -55,13 +55,14 @@ export async function upsertQuizResult(input: { user_id: string; quiz_id: string
   })
 }
 
-export async function areAllQuizzesPassed(courseId: number, userId: string): Promise<boolean> {
+export async function areAllQuizzesPassed(courseId: string, userId: string): Promise<boolean> {
   const { data: quizzes } = await getSupabase()
     .from('quizzes')
     .select('id')
     .eq('course_id', courseId)
-  if (!quizzes || quizzes.length === 0) return false
+  const quizRows = quizzes as { id: string }[] | null
+  if (!quizRows || quizRows.length === 0) return false
   const results = await apiFetch<UserQuizResult[]>(`/api/quiz-results?user_id=${userId}`)
   const passedQuizIds = new Set(results.filter((r) => r.passed).map((r) => r.quiz_id))
-  return quizzes.every((q) => passedQuizIds.has(q.id))
+  return quizRows.every((q) => passedQuizIds.has(q.id))
 }
