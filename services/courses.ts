@@ -26,10 +26,11 @@ export async function getPublishedCourses(): Promise<Course[]> {
 }
 
 export async function getAllCourses(): Promise<Course[]> {
-  const h = await authHeaders()
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/courses?select=*&order=sort_order.asc`, { headers: h })
-  if (!res.ok) return []
-  return res.json()
+  const { data } = await getSupabase()
+    .from('courses')
+    .select('*')
+    .order('sort_order', { ascending: true })
+  return data || []
 }
 
 const courseCache = new Map<string, Course>()
@@ -43,12 +44,12 @@ export async function getCourse(id: string | number, force = false): Promise<Cou
   const key = String(id)
   if (!force && courseCache.has(key)) return courseCache.get(key)!
 
-  const h = await authHeaders()
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/courses?select=*&id=eq.${encodeURIComponent(key)}`, {
-    headers: { ...h, Accept: 'application/vnd.pgrst.object+json' },
-  })
-  if (!res.ok) return null
-  const data = (await res.json()) as Course | null
+  const { data } = await getSupabase()
+    .from('courses')
+    .select('*')
+    .eq('id', key)
+    .maybeSingle()
+
   if (data) courseCache.set(key, data)
   return data
 }

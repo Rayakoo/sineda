@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Course } from "@/types/course";
+import { transformImageUrl } from "@/lib/image";
 
 interface Props {
   course: Course;
@@ -16,7 +17,7 @@ export default function CourseCard({ course, href }: Props) {
     >
       <div className={`h-44 shrink-0 ${course.image ? "" : course.color} flex items-center justify-center overflow-hidden`}>
         {course.image ? (
-          <img src={course.image} alt="" className="w-full h-full object-cover" />
+          <img src={transformImageUrl(course.image)} alt="" className="w-full h-full object-cover" />
         ) : (
           <i className={`fas ${course.icon} text-6xl text-white`}></i>
         )}
