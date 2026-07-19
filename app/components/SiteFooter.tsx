@@ -7,11 +7,11 @@ export default function SiteFooter() {
   const { setActiveSection } = useNav()
 
   return (
-    <footer className="bg-[#00335c] text-white pt-16 pb-8">
+    <footer className="bg-[#00335c] text-white pt-16 pb-8 border-t-4 border-[#F7941E]">
       <div className="container mx-auto px-4">
         <div className="grid lg:grid-cols-3 gap-12 mb-12">
           <div>
-            <div className="w-16 h-16 bg-white/20 rounded flex items-center justify-center text-white font-bold text-2xl mb-6">S</div>
+            <img src="/logo_sineda.png" alt="SINEDA" className="h-12 mb-6" />
             <p className="text-sm text-blue-200">
               SINEDA (Sistem Edukasi Aman) adalah platform edukasi inovatif untuk menciptakan lingkungan sekolah yang aman.
             </p>

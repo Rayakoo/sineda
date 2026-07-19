@@ -49,7 +49,7 @@ export default function SiswaDashboard() {
               <div className="text-center py-12 text-gray-400">
                 <i className="fas fa-book-open text-5xl mb-4 block"></i>
                 <p className="text-lg mb-4">Belum ada kursus yang diambil.</p>
-                <Link href="/" className="inline-block bg-[#005696] text-white px-8 py-3 rounded-xl font-bold hover:bg-[#003d6e] transition">
+                <Link href="/" className="inline-block bg-[#F7941E] text-white px-8 py-3 rounded-xl font-bold hover:bg-[#e0861b] transition">
                   Jelajahi Kursus
                 </Link>
               </div>
@@ -72,7 +72,7 @@ export default function SiswaDashboard() {
                     </div>
                     <Link
                       href={`/course/${uc.course_id}/materi`}
-                      className="shrink-0 bg-[#005696] text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-[#003d6e] transition"
+                      className="shrink-0 bg-[#F7941E] text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-[#e0861b] transition"
                     >
                       Lanjutkan
                     </Link>

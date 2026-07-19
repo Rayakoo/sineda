@@ -26,13 +26,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <aside className="w-64 bg-[#00335c] flex flex-col justify-between shrink-0">
           <div>
             <Link href="/" className="flex items-center gap-3 px-6 py-6 border-b border-white/10">
-              <div className="bg-white p-1.5 rounded">
-                <div className="w-8 h-8 bg-[#005696] rounded flex items-center justify-center text-white font-bold">S</div>
-              </div>
-              <div>
-                <h2 className="font-bold leading-none text-white">SINEDA</h2>
-                <p className="text-[9px] text-blue-300 uppercase tracking-wider">Admin Panel</p>
-              </div>
+              <img src="/logo_sineda.png" alt="SINEDA" className="h-8" />
+              <span className="text-[9px] text-blue-300 uppercase tracking-wider">Admin Panel</span>
             </Link>
 
             <nav className="p-4 space-y-1">

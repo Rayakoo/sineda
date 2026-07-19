@@ -60,6 +60,8 @@ export function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
     if (!r.ok) throw new Error(`API error: ${r.status}`)
     const text = await r.text()
     if (!text) throw new Error('Empty response from server — mungkin perlu Prefer: return=representation')
-    return JSON.parse(text)
+    const data = JSON.parse(text) as T
+    if (Array.isArray(data) && data.length === 1) return data[0] as T
+    return data
   })
 }

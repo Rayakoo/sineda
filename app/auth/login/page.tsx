@@ -49,10 +49,7 @@ export default function LoginPage() {
         <div className="bg-white rounded-2xl shadow-lg p-8">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-3 mb-6">
-            <div className="bg-[#005696] p-1.5 rounded">
-              <div className="w-8 h-8 bg-white rounded flex items-center justify-center text-[#005696] font-bold">S</div>
-            </div>
-            <span className="font-bold text-xl">SINEDA</span>
+            <img src="/logo_sineda.png" alt="SINEDA" className="h-10" />
           </Link>
           <h1 className="text-2xl font-bold text-gray-800">Selamat Datang</h1>
           <p className="text-sm text-gray-500 mt-1">Masuk ke akun SINEDA Anda</p>

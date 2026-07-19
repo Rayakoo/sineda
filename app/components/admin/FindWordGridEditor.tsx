@@ -155,7 +155,7 @@ export default function FindWordGridEditor({ gridWidth, gridHeight, initialWords
                   onClick={() => handleCellClick(ri, ci)}
                   className={`relative w-8 h-8 rounded-sm border flex items-center justify-center text-xs font-bold transition-all ${
                     isSelected
-                      ? "border-amber-500 bg-[#fbbf24] text-white shadow-md scale-110 z-10"
+                      ? "border-amber-500 bg-[#F7941E] text-white shadow-md scale-110 z-10"
                       : cell
                         ? "border-[#005696] bg-blue-50 shadow-sm"
                         : "border-gray-200 bg-gray-50 hover:border-gray-400 cursor-pointer"
@@ -202,7 +202,7 @@ export default function FindWordGridEditor({ gridWidth, gridHeight, initialWords
           onClick={() => setSelectedId(w.id)}
           className={`bg-white border-2 rounded-xl p-4 space-y-3 cursor-pointer transition-all ${
             selectedId === w.id
-              ? "border-[#fbbf24] shadow-md"
+              ? "border-[#F7941E] shadow-md"
               : "border-gray-200 hover:border-gray-300"
           }`}
         >

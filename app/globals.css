@@ -1,12 +1,19 @@
 @import "tailwindcss";
 
+:root {
+  --color-primary: #005696;
+  --color-secondary: #F7941E;
+  --color-primary-dark: #003d6e;
+  --color-primary-darker: #00335c;
+}
+
 body {
   font-family: 'Inter', sans-serif;
 }
 
 .nav-link:hover {
-  color: #fbbf24;
-  border-bottom: 2px solid #fbbf24;
+  color: #F7941E;
+  border-bottom: 2px solid #F7941E;
   cursor: pointer;
 }
 

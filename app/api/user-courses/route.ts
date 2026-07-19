@@ -43,7 +43,17 @@ export async function POST(request: Request) {
     .from('user_courses')
     .insert({ user_id, course_id, current_urutan: 0 })
     .select()
-    .single()
+    .maybeSingle()
+
+  if (error && error.code === '23505') {
+    const { data: dup } = await supabase
+      .from('user_courses')
+      .select('*')
+      .eq('user_id', user_id)
+      .eq('course_id', course_id)
+      .maybeSingle()
+    if (dup) return NextResponse.json(dup)
+  }
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json(data)

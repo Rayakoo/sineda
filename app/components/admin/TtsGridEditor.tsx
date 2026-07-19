@@ -228,7 +228,7 @@ export default function TtsGridEditor({ initialCells, onChange }: Props) {
                     onClick={() => setSelected(id)}
                     className={`relative w-10 h-10 rounded-lg border-2 flex items-center justify-center font-bold text-base transition-all ${
                       selected === id
-                        ? "border-[#fbbf24] ring-2 ring-[#fbbf24]/40 bg-amber-50 shadow-md scale-105"
+                        ? "border-[#F7941E] ring-2 ring-[#F7941E]/40 bg-amber-50 shadow-md scale-105"
                         : cell.clues.length > 0
                           ? "border-[#005696] bg-blue-50 shadow-md"
                           : cell.letter

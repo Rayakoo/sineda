@@ -140,6 +140,8 @@ export default function QuizForm({ courseId, quizData, existingQuestions, onSucc
         await updateQuiz(quizData.id, { title, description: description || undefined });
       }
 
+      if (!quizId) throw new Error("Gagal mendapatkan ID quiz");
+
       const existingIds = new Set((existingQuestions ?? []).map((q) => q.id));
       const submittedIds = new Set<string>();
 

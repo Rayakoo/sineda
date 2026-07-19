@@ -72,10 +72,25 @@ export default function CourseEditorPage() {
     setEditMode(true)
     setLoading(false)
 
-    getCourseVideos(id).then(setVideos).catch(() => {})
-    getCourseMaterials(id).then(setMaterials).catch(() => {})
-    getQuizzes(id).then(setQuizzes).catch(() => {})
-    getCourseMinigames(id).then(setMinigames).catch(() => {})
+    Promise.all([
+      getCourseVideos(id),
+      getCourseMaterials(id),
+      getQuizzes(id),
+      getCourseMinigames(id),
+    ]).then(([vids, mats, quiz, mgs]) => {
+      setVideos(vids)
+      setMaterials(mats)
+      setQuizzes(quiz)
+      setMinigames(mgs)
+      const total = vids.length + mats.length + quiz.length + mgs.length
+      const minutes = total * 30
+      const h = Math.floor(minutes / 60)
+      const m = minutes % 60
+      const expectedDuration = h > 0 ? `${h} jam${m > 0 ? ` ${m} menit` : ''}` : `${m} menit`
+      if (course.lessons !== total || course.duration !== expectedDuration) {
+        updateCourse(id, { lessons: total, duration: expectedDuration }).catch(() => {})
+      }
+    }).catch(() => {})
   }, [router])
 
   useEffect(() => {
@@ -174,7 +189,14 @@ export default function CourseEditorPage() {
     try {
       const id = getActiveId()
       const updates = orderedItems.map((item, i) => ({ ...item, urutan: i }))
-      await saveSectionOrder(id, updates)
+      const minutes = orderedItems.length * 30
+      const h = Math.floor(minutes / 60)
+      const m = minutes % 60
+      const duration = h > 0 ? `${h} jam${m > 0 ? ` ${m} menit` : ''}` : `${m} menit`
+      await Promise.all([
+        saveSectionOrder(id, updates),
+        updateCourse(id, { lessons: orderedItems.length, duration }),
+      ])
       const [vids, mats, quiz, mgs] = await Promise.all([
         getCourseVideos(id),
         getCourseMaterials(id),
@@ -376,10 +398,10 @@ export default function CourseEditorPage() {
                 )}
               </div>
               <Link
-                href={`/admin/course/${getActiveId()}/module/new`}
-                className="inline-flex items-center gap-1.5 bg-green-600 text-white text-xs font-semibold px-3 py-2 rounded-lg hover:bg-green-700 transition-colors"
-              >
-                <i className="fas fa-plus"></i> Tambah Modul
+              href={`/admin/course/${getActiveId()}/module/new`}
+              className="inline-flex items-center gap-1.5 bg-[#F7941E] text-white text-xs font-semibold px-3 py-2 rounded-lg hover:bg-[#e0861b] transition-colors"
+            >
+              <i className="fas fa-plus"></i> Tambah Modul
               </Link>
             </div>
 
@@ -570,7 +592,7 @@ export default function CourseEditorPage() {
                     key={`${item.type}-${item.id}`}
                     className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5"
                   >
-                    <span className="w-5 h-5 rounded-full bg-[#fbbf24] text-[10px] font-bold text-gray-800 flex items-center justify-center shrink-0">
+                    <span className="w-5 h-5 rounded-full bg-[#F7941E] text-[10px] font-bold text-gray-800 flex items-center justify-center shrink-0">
                       {index + 1}
                     </span>
                     <span className={`text-[10px] font-semibold uppercase shrink-0 ${
@@ -619,14 +641,14 @@ export default function CourseEditorPage() {
             type="button"
             onClick={() => handleSubmit(false)}
             disabled={saving}
-            className="px-10 py-3 bg-[#005696] text-white font-bold rounded-xl hover:bg-[#003d6e] flex items-center gap-2 shadow-md transition-all text-sm disabled:opacity-50"
-          >
-            {saving ? (
-              <i className="fas fa-spinner fa-spin"></i>
-            ) : (
-              <i className="fas fa-arrow-right"></i>
-            )}
-            {saving ? 'Menyimpan...' : 'Selanjutnya'}
+                className="px-10 py-3 bg-[#F7941E] text-white font-bold rounded-xl hover:bg-[#e0861b] flex items-center gap-2 shadow-md transition-all text-sm disabled:opacity-50"
+              >
+                {saving ? (
+                  <i className="fas fa-spinner fa-spin"></i>
+                ) : (
+                  <i className="fas fa-arrow-right"></i>
+                )}
+                {saving ? 'Menyimpan...' : 'Selanjutnya'}
           </button>
         ) : (
           <>
@@ -647,14 +669,14 @@ export default function CourseEditorPage() {
               type="button"
               onClick={() => handleSubmit(true)}
               disabled={saving}
-              className="px-8 py-3 bg-[#005696] text-white font-bold rounded-xl hover:bg-[#003d6e] flex items-center gap-2 shadow-md transition-all text-sm disabled:opacity-50"
-            >
-              {saving ? (
-                <i className="fas fa-spinner fa-spin"></i>
-              ) : (
-                <i className="fas fa-check-circle"></i>
-              )}
-              {saving ? 'Menyimpan...' : 'Publikasikan'}
+                className="px-8 py-3 bg-[#F7941E] text-white font-bold rounded-xl hover:bg-[#e0861b] flex items-center gap-2 shadow-md transition-all text-sm disabled:opacity-50"
+              >
+                {saving ? (
+                  <i className="fas fa-spinner fa-spin"></i>
+                ) : (
+                  <i className="fas fa-check-circle"></i>
+                )}
+                {saving ? 'Menyimpan...' : 'Publikasikan'}
             </button>
           </>
         )}

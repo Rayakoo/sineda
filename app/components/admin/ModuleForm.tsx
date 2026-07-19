@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createCourseMaterial, updateCourseMaterial, deleteCourseMaterial, getCourseSections } from "@/services/courses";
 import type { CourseMaterial } from "@/types/course";
 import FileUploader from "@/app/components/admin/FileUploader";
+import RichTextEditor from "@/components/admin/RichTextEditor";
 
 interface ModuleFormProps {
   courseId: string;
@@ -85,12 +86,10 @@ export default function ModuleForm({ courseId, moduleData, onSuccess }: ModuleFo
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Isi Modul</label>
-          <textarea
+          <RichTextEditor
             value={content}
-            onChange={(e) => setContent(e.target.value)}
-            rows={12}
+            onChange={setContent}
             placeholder="Tulis materi di sini..."
-            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#005696] font-mono placeholder-gray-300"
           />
         </div>
 

@@ -43,9 +43,8 @@ export async function getCourse(id: string | number, force = false): Promise<Cou
   const key = String(id)
   if (!force && courseCache.has(key)) return courseCache.get(key)!
 
-  const numericId = Number(id)
   const h = await authHeaders()
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/courses?select=*&id=eq.${numericId}`, {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/courses?select=*&id=eq.${encodeURIComponent(key)}`, {
     headers: { ...h, Accept: 'application/vnd.pgrst.object+json' },
   })
   if (!res.ok) return null

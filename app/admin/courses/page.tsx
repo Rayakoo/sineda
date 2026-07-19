@@ -65,7 +65,7 @@ export default function AdminKelolaCourse() {
         <h1 className="text-2xl font-bold text-[#333333]">Kelola Course</h1>
         <button
           onClick={() => router.push('/admin/course/new')}
-          className="flex items-center gap-1.5 px-5 py-2 text-sm font-semibold text-white bg-[#005696] hover:bg-[#003d6e] rounded-xl transition-colors shadow-sm"
+          className="flex items-center gap-1.5 px-5 py-2 text-sm font-semibold text-white bg-[#F7941E] hover:bg-[#e0861b] rounded-xl transition-colors shadow-sm"
         >
           <i className="fas fa-plus"></i> Tambah Course
         </button>

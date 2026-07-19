@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import { useNav } from '@/contexts/NavContext'
+import CourseCard from '@/components/CourseCard'
+import type { Course } from '@/types/course'
 
 type SessionId = 'home' | 'guru' | 'siswa' | 'orangtua'
 
@@ -24,20 +26,6 @@ type SessionData = {
   hero_title: string
   hero_description: string
   modules: SessionModule[]
-}
-
-type Course = {
-  id: number
-  title: string
-  slug: string
-  description: string
-  category: string
-  type: string
-  lessons: number
-  duration: string
-  icon: string
-  color: string
-  is_published: boolean
 }
 
 const cardColors: Record<string, { bg: string; border: string; text: string }> = {
@@ -123,28 +111,6 @@ export default function HomeClient() {
   )
 }
 
-function CourseCard({ course }: { course: Course }) {
-  return (
-    <Link href={`/course/${course.id}`} className="block bg-white rounded-3xl shadow-sm border overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-      <div className={`h-44 ${course.color} flex items-center justify-center`}>
-        <i className={`fas ${course.icon} text-6xl text-white`}></i>
-      </div>
-      <div className="p-6">
-        <div className="flex items-center gap-2 text-[11px] text-gray-500 mb-3">
-          <span className="bg-gray-100 px-2.5 py-1 rounded font-medium">{course.type === 'interactive' ? 'Interaktif' : course.type === 'unsolved_case' ? 'Kasus Misterius' : 'Belajar Mandiri'}</span>
-          {course.lessons > 0 && <span>{course.lessons} Pelajaran</span>}
-          {course.duration && <span>{course.duration}</span>}
-        </div>
-        <h4 className="font-bold text-lg mb-2 text-gray-800">{course.title}</h4>
-        <p className="text-sm text-gray-500 mb-5 line-clamp-2">{course.description}</p>
-        <div className="w-full py-3 bg-[#005696] text-white rounded-xl font-bold hover:bg-[#003d6e] transition text-sm text-center">
-          Mulai Belajar
-        </div>
-      </div>
-    </Link>
-  )
-}
-
 function HomeSession({ data, onNavClick }: { data?: SessionData; onNavClick: (id: string) => void }) {
   const modules = data?.modules || []
   const sessionIds = ['guru', 'siswa', 'orangtua']
@@ -215,7 +181,10 @@ function GuruSession({ data, courses }: { data?: SessionData; courses: Course[] 
   return (
     <section className="py-20 bg-gray-50">
       <div className="container mx-auto px-4">
-        <h2 className="text-3xl font-bold mb-2 text-[#005696]">{data?.title || 'Workshop Guru Profesional'}</h2>
+        <h2 className="text-3xl font-bold mb-2 text-[#005696]">
+          {data?.title || 'Workshop Guru Profesional'}
+          <span className="block w-16 h-1 bg-[#F7941E] rounded-full mt-2"></span>
+        </h2>
         {data?.subtitle && (
           <p className="text-gray-600 mb-10 italic font-medium text-sm">{data.subtitle}</p>
         )}
@@ -263,7 +232,7 @@ function SiswaSession({ data, courses, user, authLoading }: { data?: SessionData
           <i className="fas fa-lock text-5xl text-gray-300 mb-4 block"></i>
           <h3 className="text-2xl font-bold text-gray-800 mb-2">{data?.title || 'Zona Misi Siswa'}</h3>
           <p className="text-gray-500 mb-6">Silakan masuk menggunakan akun Siswa Intervensi untuk mengakses materi.</p>
-          <Link href="/auth/login" className="inline-block bg-[#005696] text-white px-8 py-3 rounded-xl font-bold hover:bg-[#003d6e] transition">
+          <Link href="/auth/login" className="inline-block bg-[#F7941E] text-white px-8 py-3 rounded-xl font-bold hover:bg-[#e0861b] transition">
             Masuk
           </Link>
         </div>
@@ -276,13 +245,13 @@ function SiswaSession({ data, courses, user, authLoading }: { data?: SessionData
       <div className="container mx-auto px-4">
         <h2 className="text-3xl font-bold mb-10 text-green-700">{data?.title || 'Zona Misi Siswa'}</h2>
 
-        <div className="bg-slate-900 rounded-[2rem] p-8 mb-16 text-white flex flex-col md:flex-row items-center gap-10">
+          <div className="bg-slate-900 rounded-[2rem] p-8 mb-16 text-white flex flex-col md:flex-row items-center gap-10">
           <div className="flex-1">
-            <h3 className="text-4xl font-black text-orange-500 mb-4 uppercase italic">Game: Unsolved Case</h3>
+            <h3 className="text-4xl font-black text-[#F7941E] mb-4 uppercase italic">Game: Unsolved Case</h3>
             <p className="text-gray-400 mb-6 italic">
               &ldquo;Selesaikan misi investigasi kasus sekolah dan kumpulkan 1000 XP untuk mendapatkan Sertifikat Pahlawan Sekolah!&rdquo;
             </p>
-            <button className="bg-orange-500 px-10 py-3 rounded-full font-extrabold hover:scale-105 transition">
+            <button className="bg-[#F7941E] px-10 py-3 rounded-full font-extrabold hover:scale-105 transition">
               MULAI MISI
             </button>
           </div>
@@ -318,9 +287,9 @@ function SiswaSession({ data, courses, user, authLoading }: { data?: SessionData
 
 function OrangTuaSession({ data, courses }: { data?: SessionData; courses: Course[] }) {
   return (
-    <section className="py-20 bg-orange-50">
+    <section className="py-20 bg-[#FFF5E8]">
       <div className="container mx-auto px-4 max-w-5xl">
-        <h2 className="text-3xl font-bold mb-8 text-orange-600">{data?.title || 'Portal Wali Murid'}</h2>
+        <h2 className="text-3xl font-bold mb-8 text-[#F7941E]">{data?.title || 'Portal Wali Murid'}</h2>
 
         {courses.length > 0 && (
           <div className="grid md:grid-cols-2 gap-8 mb-12">
@@ -337,9 +306,9 @@ function OrangTuaSession({ data, courses }: { data?: SessionData; courses: Cours
           </div>
         )}
 
-        <div className="bg-white p-8 rounded-3xl border border-orange-200 flex flex-col items-center justify-center text-center max-w-md mx-auto">
-          <div className="w-20 h-20 bg-orange-50 rounded-full flex items-center justify-center mb-4">
-            <i className="fas fa-award text-4xl text-orange-400"></i>
+        <div className="bg-white p-8 rounded-3xl border border-[#F7941E]/30 flex flex-col items-center justify-center text-center max-w-md mx-auto">
+          <div className="w-20 h-20 bg-[#F7941E]/10 rounded-full flex items-center justify-center mb-4">
+            <i className="fas fa-award text-4xl text-[#F7941E]"></i>
           </div>
           <h4 className="font-bold text-xl mb-2 text-gray-800">Sertifikat Orang Tua Tangguh</h4>
           <p className="text-sm text-gray-500">Diberikan setelah menyelesaikan modul pendampingan.</p>
