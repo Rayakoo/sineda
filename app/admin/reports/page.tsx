@@ -10,6 +10,7 @@ type ReportUser = {
   enrollments: {
     course_id: number
     course_title: string
+    course_lessons: number
     current_urutan: number
     is_completed: boolean
     completed_at: string | null
@@ -17,6 +18,7 @@ type ReportUser = {
   quizResults: {
     quiz_id: string
     quiz_title: string
+    course_title: string
     score: number
     total: number
     passed: boolean
@@ -139,12 +141,12 @@ export default function AdminReportsPage() {
                 const completed = u.enrollments.filter((e) => e.is_completed).length
                 const quizCount = u.quizResults.length
                 const avgScore = quizCount > 0
-                  ? Math.round(u.quizResults.reduce((s, r) => s + (r.total > 0 ? (r.score / r.total) * 100 : 0), 0) / quizCount)
+                  ? Math.round(u.quizResults.reduce((s, r) => s + r.score, 0) / quizCount)
                   : 0
                 const isExpanded = expandedId === u.id
 
                 return (
-                  <tr key={u.id} className="border-b hover:bg-gray-50 cursor-pointer" onClick={() => setExpandedId(isExpanded ? null : u.id)}>
+                  <tr key={u.id} className={`border-b hover:bg-gray-50 cursor-pointer transition ${isExpanded ? 'bg-blue-50' : ''}`} onClick={() => setExpandedId(isExpanded ? null : u.id)}>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white ${u.type === 'siswa_intervensi' ? 'bg-orange-400' : 'bg-blue-500'}`}>
@@ -197,83 +199,100 @@ export default function AdminReportsPage() {
         const u = users.find((x) => x.id === expandedId)
         if (!u) return null
         return (
-          <div className="mt-6 bg-white rounded-2xl shadow-sm border overflow-hidden">
-            <div className="p-6 border-b">
-              <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white ${u.type === 'siswa_intervensi' ? 'bg-orange-400' : 'bg-blue-500'}`}>
-                  {u.name.charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-800">{u.name}</h3>
-                  <p className="text-xs text-gray-400">{u.type === 'siswa_intervensi' ? 'Siswa Intervensi' : 'User Biasa'}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-6 space-y-8">
-              <div>
-                <h4 className="font-bold text-gray-700 mb-3 flex items-center gap-2">
-                  <i className="fas fa-book text-[#005696]"></i> Course ({u.enrollments.length})
-                </h4>
-                {u.enrollments.length === 0 ? (
-                  <p className="text-sm text-gray-400 italic">Belum mengambil course apapun</p>
-                ) : (
-                  <div className="space-y-2">
-                    {u.enrollments.map((e, i) => (
-                      <div key={i} className="flex items-center gap-4 bg-gray-50 rounded-xl px-4 py-3">
-                        <div className={`w-2 h-2 rounded-full ${e.is_completed ? 'bg-green-500' : 'bg-amber-400'}`}></div>
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-gray-800">{e.course_title}</p>
-                          <p className="text-xs text-gray-400">Progress: urutan {e.current_urutan}</p>
-                        </div>
-                        {e.is_completed && (
-                          <span className="text-xs font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full">Selesai</span>
-                        )}
-                      </div>
-                    ))}
+          <div className="fixed inset-0 z-50 flex items-start justify-center pt-10 pb-10 bg-black/40" onClick={() => setExpandedId(null)}>
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden mx-4" onClick={(e) => e.stopPropagation()}>
+              <div className="shrink-0 p-6 border-b flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white ${u.type === 'siswa_intervensi' ? 'bg-orange-400' : 'bg-blue-500'}`}>
+                    {u.name.charAt(0).toUpperCase()}
                   </div>
-                )}
+                  <div>
+                    <h3 className="font-bold text-gray-800">{u.name}</h3>
+                    <p className="text-xs text-gray-400">{u.type === 'siswa_intervensi' ? 'Siswa Intervensi' : 'User Biasa'}</p>
+                  </div>
+                </div>
+                <button onClick={() => setExpandedId(null)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                  <i className="fas fa-times text-gray-400"></i>
+                </button>
               </div>
 
-              <div>
-                <h4 className="font-bold text-gray-700 mb-3 flex items-center gap-2">
-                  <i className="fas fa-tasks text-purple-600"></i> Hasil Quiz ({u.quizResults.length})
-                </h4>
-                {u.quizResults.length === 0 ? (
-                  <p className="text-sm text-gray-400 italic">Belum mengerjakan quiz apapun</p>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b text-left">
-                          <th className="px-4 py-2 font-semibold text-gray-600">Quiz</th>
-                          <th className="px-4 py-2 font-semibold text-gray-600 text-center">Skor</th>
-                          <th className="px-4 py-2 font-semibold text-gray-600 text-center">Total</th>
-                          <th className="px-4 py-2 font-semibold text-gray-600 text-center">Nilai</th>
-                          <th className="px-4 py-2 font-semibold text-gray-600 text-center">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {u.quizResults.map((r, i) => {
-                          const pct = r.total > 0 ? Math.round((r.score / r.total) * 100) : 0
-                          return (
+              <div className="p-6 space-y-8 overflow-y-auto">
+                <div>
+                  <h4 className="font-bold text-gray-700 mb-3 flex items-center gap-2">
+                    <i className="fas fa-book text-[#005696]"></i> Course ({u.enrollments.length})
+                  </h4>
+                  {u.enrollments.length === 0 ? (
+                    <p className="text-sm text-gray-400 italic">Belum mengambil course apapun</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {u.enrollments.map((e, i) => {
+                        const progress = e.course_lessons > 0 ? Math.min(100, Math.round((e.current_urutan / e.course_lessons) * 100)) : 0
+                        return (
+                          <div key={i} className="flex items-center gap-4 bg-gray-50 rounded-xl px-4 py-3">
+                            <div className={`w-2 h-2 rounded-full ${e.is_completed ? 'bg-green-500' : 'bg-[#F7941E]'}`}></div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-800">{e.course_title}</p>
+                              <div className="flex items-center gap-3 mt-1.5">
+                                <div className="flex-1 bg-gray-200 rounded-full h-1.5 max-w-[200px]">
+                                  <div
+                                    className="bg-[#F7941E] h-1.5 rounded-full transition-all"
+                                    style={{ width: `${e.is_completed ? 100 : progress}%` }}
+                                  />
+                                </div>
+                                <span className="text-xs text-gray-500 whitespace-nowrap">
+                                  {e.is_completed ? 'Selesai' : `${e.current_urutan}/${e.course_lessons}`}
+                                </span>
+                              </div>
+                            </div>
+                            {e.is_completed && (
+                              <span className="text-xs font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full shrink-0">Selesai</span>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <h4 className="font-bold text-gray-700 mb-3 flex items-center gap-2">
+                    <i className="fas fa-tasks text-purple-600"></i> Hasil Quiz ({u.quizResults.length})
+                  </h4>
+                  {u.quizResults.length === 0 ? (
+                    <p className="text-sm text-gray-400 italic">Belum mengerjakan quiz apapun</p>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b text-left">
+                            <th className="px-4 py-2 font-semibold text-gray-600">Course</th>
+                            <th className="px-4 py-2 font-semibold text-gray-600">Quiz</th>
+                            <th className="px-4 py-2 font-semibold text-gray-600 text-center">Skor</th>
+                            <th className="px-4 py-2 font-semibold text-gray-600 text-center">Jumlah Soal</th>
+                            <th className="px-4 py-2 font-semibold text-gray-600 text-center">Nilai</th>
+                            <th className="px-4 py-2 font-semibold text-gray-600 text-center">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {u.quizResults.map((r, i) => (
                             <tr key={i} className="border-b hover:bg-gray-50">
+                              <td className="px-4 py-3 text-xs text-gray-500">{r.course_title}</td>
                               <td className="px-4 py-3 font-medium text-gray-800">{r.quiz_title}</td>
                               <td className="px-4 py-3 text-center">{r.score}</td>
                               <td className="px-4 py-3 text-center">{r.total}</td>
-                              <td className="px-4 py-3 text-center font-bold">{pct}%</td>
+                              <td className="px-4 py-3 text-center font-bold">{r.score}%</td>
                               <td className="px-4 py-3 text-center">
                                 <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${r.passed ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                                   {r.passed ? 'Lulus' : 'Tidak Lulus'}
                                 </span>
                               </td>
                             </tr>
-                          )
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
