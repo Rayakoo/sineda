@@ -203,6 +203,7 @@ export default function HintsPage() {
   const [selectedCategory, setSelectedCategory] = useState<UnsolvedCaseHintType | null>(null)
   const [selectedKartuId, setSelectedKartuId] = useState<string | null>(null)
   const [kartuPopup, setKartuPopup] = useState<{ konten: UnsolvedCaseHintKartu } | null>(null)
+  const [hoveredHintType, setHoveredHintType] = useState<UnsolvedCaseHintType | null>(null)
 
   useEffect(() => {
     const name = getDetectiveName()
@@ -363,26 +364,43 @@ export default function HintsPage() {
         ) : (
           <>
             <div
-              className="relative min-h-[320px] bg-[#e8dcc8] rounded-2xl border-2 border-[#c4a882] p-6 mb-4"
+              className="relative min-h-[320px] rounded-2xl border-2 border-[#c4a882] p-6 mb-4 overflow-hidden"
               style={{
-                backgroundImage: 'radial-gradient(#c4a88230 1px, transparent 1px)',
-                backgroundSize: '20px 20px',
-                boxShadow: 'inset 0 2px 8px rgba(139, 69, 19, 0.06)',
+                backgroundImage: "url('/background_hint.png')",
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                boxShadow: 'inset 0 2px 8px rgba(139, 69, 19, 0.08), 0 10px 30px rgba(92, 61, 46, 0.12)',
               }}
             >
-              <p className="text-[10px] text-[#8b7355] font-mono text-center mb-6 italic">
+              <div
+                className={`absolute inset-0 transition-opacity duration-200 ${hoveredHintType ? 'opacity-45' : 'opacity-100'}`}
+                style={{
+                  backgroundImage: "url('/background_hint.png')",
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat',
+                }}
+              />
+
+              <p className="relative z-10 text-[10px] text-[#8b7355] font-mono text-center mb-6 italic">
                 Pilih petunjuk yang ingin diperiksa
               </p>
 
-              <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6">
+              <div className="relative z-10 flex flex-wrap items-center justify-center gap-4 md:gap-6">
                 {Object.entries(grouped).map(([tipe, items], idx) => {
-                  const cfg = CATEGORY_CONFIG[tipe as UnsolvedCaseHintType]
+                  const hintType = tipe as UnsolvedCaseHintType
+                  const cfg = CATEGORY_CONFIG[hintType]
                   const revealedCount = items.filter(h => revealed.has(h.id)).length
+                  const isHovered = hoveredHintType === hintType
+                  const isAnyHovered = hoveredHintType !== null
                   return (
                     <TiltCard key={tipe}>
                       <button
-                        onClick={() => setSelectedCategory(tipe as UnsolvedCaseHintType)}
-                        className={`bg-white rounded-2xl border-2 border-[#d4c4a8] p-5 shadow-md hover:shadow-lg transition-all text-center w-36 ${cfg.rotate}`}
+                        onClick={() => setSelectedCategory(hintType)}
+                        onMouseEnter={() => setHoveredHintType(hintType)}
+                        onMouseLeave={() => setHoveredHintType(null)}
+                        className={`bg-white rounded-2xl border-2 border-[#d4c4a8] p-5 shadow-[0_16px_30px_rgba(92,61,46,0.3)] hover:shadow-[0_0_0_4px_rgba(255,255,255,0.9),0_20px_38px_rgba(92,61,46,0.48)] transition-all duration-200 text-center w-36 ${cfg.rotate} ${isHovered ? 'scale-105 -translate-y-1 opacity-100' : isAnyHovered ? 'opacity-45' : 'opacity-100'}`}
                         style={{
                           marginTop: idx % 2 === 0 ? '0px' : '16px',
                         }}
