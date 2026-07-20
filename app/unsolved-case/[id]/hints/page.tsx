@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { getHints, getUnsolvedCase } from '@/services/unsolvedCase'
 import { getCourse } from '@/services/courses'
+import { transformImageUrl } from '@/lib/image'
 import { getDetectiveName, getConfirmed, getRevealedHints, addRevealedHint } from '@/lib/unsolvedCaseStorage'
 import type { UnsolvedCaseHint, UnsolvedCaseHintType, UnsolvedCaseHintKartu } from '@/types/course'
 
@@ -158,7 +159,7 @@ function KartuFlip({ konten, zoomed }: { konten: UnsolvedCaseHintKartu; zoomed?:
           <div className="absolute inset-0 rounded-xl overflow-hidden shadow-lg"
             style={{ backfaceVisibility: 'hidden' }}>
             {konten.kartu_depan ? (
-              <img src={konten.kartu_depan} alt="Kartu depan" className="w-full h-full object-contain" />
+              <img src={transformImageUrl(konten.kartu_depan)} alt="Kartu depan" className="w-full h-full object-contain" />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-[#f5efe6] text-[#a09080] text-sm">Depan</div>
             )}
@@ -166,7 +167,7 @@ function KartuFlip({ konten, zoomed }: { konten: UnsolvedCaseHintKartu; zoomed?:
           <div className="absolute inset-0 rounded-xl overflow-hidden shadow-lg"
             style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}>
             {konten.kartu_belakang ? (
-              <img src={konten.kartu_belakang} alt="Kartu belakang" className="w-full h-full object-contain" />
+              <img src={transformImageUrl(konten.kartu_belakang)} alt="Kartu belakang" className="w-full h-full object-contain" />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-[#f5efe6] text-[#a09080] text-sm">Belakang</div>
             )}
@@ -417,7 +418,7 @@ function ChatContent({ konten }: { konten: any }) {
         <p className="text-xs text-[#8b7355] italic">Dari: {konten.nama_lawan_chat}</p>
       )}
       {konten.images?.map((img: string, i: number) => (
-        <img key={i} src={img} alt={`Chat ${i + 1}`} className="max-h-48 rounded-lg border border-[#d4c4a8]" />
+        <img key={i} src={transformImageUrl(img)} alt={`Chat ${i + 1}`} className="max-h-48 rounded-lg border border-[#d4c4a8]" />
       ))}
     </div>
   )
@@ -428,10 +429,10 @@ function BukuContent({ konten }: { konten: any }) {
     <div className="space-y-2">
       <p className="font-bold italic" style={{ fontFamily: 'serif' }}>{konten.judul_buku}</p>
       {konten.cover_buku && (
-        <img src={konten.cover_buku} alt="Cover" className="max-h-40 rounded-lg border border-[#c4a882]" />
+        <img src={transformImageUrl(konten.cover_buku)} alt="Cover" className="max-h-40 rounded-lg border border-[#c4a882]" />
       )}
       {konten.isi_buku?.map((img: string, i: number) => (
-        <img key={i} src={img} alt={`Halaman ${i + 1}`} className="max-h-40 rounded-lg border border-[#d4c4a8]" />
+        <img key={i} src={transformImageUrl(img)} alt={`Halaman ${i + 1}`} className="max-h-40 rounded-lg border border-[#d4c4a8]" />
       ))}
     </div>
   )
@@ -443,13 +444,13 @@ function KarakterContent({ konten }: { konten: any }) {
       <div className="flex items-center gap-3">
         {konten.foto_karakter && (
           <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#c4a882] shrink-0 bg-[#e8dcc8]">
-            <img src={konten.foto_karakter} alt={konten.nama} className="w-full h-full object-cover" />
+            <img src={transformImageUrl(konten.foto_karakter)} alt={konten.nama} className="w-full h-full object-cover" />
           </div>
         )}
         <p className="font-bold">{konten.nama}</p>
       </div>
       {konten.images?.map((img: string, i: number) => (
-        <img key={i} src={img} alt={`Kesaksian ${i + 1}`} className="max-h-40 rounded-lg border border-[#d4c4a8]" />
+        <img key={i} src={transformImageUrl(img)} alt={`Kesaksian ${i + 1}`} className="max-h-40 rounded-lg border border-[#d4c4a8]" />
       ))}
     </div>
   )
@@ -465,7 +466,7 @@ function LainnyaContent({ konten }: { konten: any }) {
         )}
       </div>
       {konten.gambar && (
-        <img src={konten.gambar} alt={konten.nama_hint} className="max-h-40 rounded-lg border border-[#d4c4a8]" />
+        <img src={transformImageUrl(konten.gambar)} alt={konten.nama_hint} className="max-h-40 rounded-lg border border-[#d4c4a8]" />
       )}
     </div>
   )

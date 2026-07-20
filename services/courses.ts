@@ -26,11 +26,26 @@ export async function getPublishedCourses(): Promise<Course[]> {
 }
 
 export async function getAllCourses(): Promise<Course[]> {
-  const { data } = await getSupabase()
-    .from('courses')
-    .select('*')
-    .order('sort_order', { ascending: true })
-  return data || []
+  try {
+    const h = await authHeaders()
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/courses?select=*`, {
+      method: 'GET',
+      headers: { ...h, Prefer: 'return=representation' },
+    })
+
+    if (!res.ok) {
+      throw new Error(`Failed to load courses (${res.status})`)
+    }
+
+    const data = await res.json()
+    return Array.isArray(data) ? data.sort((a, b) => Number(a.sort_order ?? 0) - Number(b.sort_order ?? 0)) : []
+  } catch {
+    const { data } = await getSupabase()
+      .from('courses')
+      .select('*')
+      .order('sort_order', { ascending: true })
+    return data || []
+  }
 }
 
 const courseCache = new Map<string, Course>()
@@ -44,14 +59,31 @@ export async function getCourse(id: string | number, force = false): Promise<Cou
   const key = String(id)
   if (!force && courseCache.has(key)) return courseCache.get(key)!
 
-  const { data } = await getSupabase()
-    .from('courses')
-    .select('*')
-    .eq('id', key)
-    .maybeSingle()
+  try {
+    const h = await authHeaders()
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/courses?id=eq.${key}&select=*`, {
+      method: 'GET',
+      headers: { ...h, Prefer: 'return=representation' },
+    })
 
-  if (data) courseCache.set(key, data)
-  return data
+    if (!res.ok) {
+      throw new Error(`Failed to load course (${res.status})`)
+    }
+
+    const data = await res.json()
+    const course = Array.isArray(data) ? data[0] ?? null : data ?? null
+    if (course) courseCache.set(key, course)
+    return course
+  } catch {
+    const { data } = await getSupabase()
+      .from('courses')
+      .select('*')
+      .eq('id', key)
+      .maybeSingle()
+
+    if (data) courseCache.set(key, data)
+    return data
+  }
 }
 
 export async function createCourse(input: Partial<Course>): Promise<Course> {

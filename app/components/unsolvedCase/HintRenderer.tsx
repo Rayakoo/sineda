@@ -1,5 +1,6 @@
 'use client'
 
+import { transformImageUrl } from '@/lib/image'
 import type { UnsolvedCaseHint, UnsolvedCaseHintChat, UnsolvedCaseHintKarakter, UnsolvedCaseHintBuku, UnsolvedCaseHintKartu, UnsolvedCaseHintLainnya } from '@/types/course'
 
 type Props = {
@@ -36,7 +37,7 @@ function ChatHint({ konten }: { konten: UnsolvedCaseHintChat }) {
               <div key={i} className="flex justify-start">
                 <div className="bg-white rounded-xl rounded-bl-sm px-3 py-2 shadow-sm border border-[#e8dcc8] max-w-[80%]">
                   <img
-                    src={img}
+                    src={transformImageUrl(img)}
                     alt={`Chat ${i + 1}`}
                     className="max-h-48 rounded-lg"
                     onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
@@ -59,7 +60,7 @@ function ChatHint({ konten }: { konten: UnsolvedCaseHintChat }) {
         {konten.images?.map((img, i) => (
           <img
             key={i}
-            src={img}
+            src={transformImageUrl(img)}
             alt={`Status ${i + 1}`}
             className="max-h-60 rounded-xl border border-[#d4c4a8]"
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
@@ -77,7 +78,7 @@ function KarakterHint({ konten }: { konten: UnsolvedCaseHintKarakter }) {
         {konten.foto_karakter && (
           <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-[#c4a882] shrink-0 bg-[#e8dcc8]">
             <img
-              src={konten.foto_karakter}
+              src={transformImageUrl(konten.foto_karakter)}
               alt={konten.nama}
               className="w-full h-full object-cover"
               onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
@@ -99,7 +100,7 @@ function KarakterHint({ konten }: { konten: UnsolvedCaseHintKarakter }) {
             {konten.images.map((img, i) => (
               <img
                 key={i}
-                src={img}
+                src={transformImageUrl(img)}
                 alt={`Kesaksian ${i + 1}`}
                 className="max-h-48 rounded-xl border border-[#d4c4a8] bg-[#faf6f0]"
                 onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
@@ -119,7 +120,7 @@ function BukuHint({ konten }: { konten: UnsolvedCaseHintBuku }) {
       {konten.cover_buku && (
         <div className="flex justify-center">
           <img
-            src={konten.cover_buku}
+            src={transformImageUrl(konten.cover_buku)}
             alt={`Cover ${konten.judul_buku}`}
             className="max-h-48 rounded-xl border border-[#c4a882] shadow-md"
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
@@ -135,7 +136,7 @@ function BukuHint({ konten }: { konten: UnsolvedCaseHintBuku }) {
           {konten.isi_buku.map((img, i) => (
             <img
               key={i}
-              src={img}
+              src={transformImageUrl(img)}
               alt={`Halaman ${i + 1}`}
               className="max-h-48 rounded-xl border border-[#d4c4a8]"
               onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
@@ -156,7 +157,7 @@ function KartuHint({ konten }: { konten: UnsolvedCaseHintKartu }) {
           <p className="text-[10px] font-bold text-[#8b7355] uppercase tracking-wider mb-1">Depan</p>
           {konten.kartu_depan && (
             <img
-              src={konten.kartu_depan}
+              src={transformImageUrl(konten.kartu_depan)}
               alt="Kartu depan"
               className="max-h-32 rounded-xl border border-[#d4c4a8] shadow-sm bg-white"
               onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
@@ -167,7 +168,7 @@ function KartuHint({ konten }: { konten: UnsolvedCaseHintKartu }) {
           <p className="text-[10px] font-bold text-[#8b7355] uppercase tracking-wider mb-1">Belakang</p>
           {konten.kartu_belakang && (
             <img
-              src={konten.kartu_belakang}
+              src={transformImageUrl(konten.kartu_belakang)}
               alt="Kartu belakang"
               className="max-h-32 rounded-xl border border-[#d4c4a8] shadow-sm bg-white"
               onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
@@ -192,7 +193,7 @@ function LainnyaHint({ konten }: { konten: UnsolvedCaseHintLainnya }) {
       </div>
       {konten.gambar && (
         <img
-          src={konten.gambar}
+          src={transformImageUrl(konten.gambar)}
           alt={konten.nama_hint}
           className="max-h-40 rounded-xl border border-[#d4c4a8] bg-[#faf6f0]"
           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}

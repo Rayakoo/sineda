@@ -21,7 +21,12 @@ export default function AdminKelolaCourse() {
   useEffect(() => {
     Promise.all([getAllCourses(), getCourseStats()])
       .then(([c, s]) => {
-        setCourses(c)
+        const sortedCourses = [...c].sort((a, b) => {
+          const aTime = new Date(a.created_at || 0).getTime()
+          const bTime = new Date(b.created_at || 0).getTime()
+          return bTime - aTime
+        })
+        setCourses(sortedCourses)
         setStats(s)
       })
       .catch(() => {})
@@ -40,9 +45,13 @@ export default function AdminKelolaCourse() {
     }
   }
 
-  const filtered = courses.filter((c) =>
-    c.title.toLowerCase().includes(search.toLowerCase())
-  )
+  const filtered = [...courses]
+    .sort((a, b) => {
+      const aTime = new Date(a.created_at || 0).getTime()
+      const bTime = new Date(b.created_at || 0).getTime()
+      return bTime - aTime
+    })
+    .filter((c) => c.title.toLowerCase().includes(search.toLowerCase()))
 
   if (loading) {
     return (

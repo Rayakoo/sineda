@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { getDetectiveName, setDetectiveName as saveName, setConfirmed as saveConfirmed, getDraftName, setDraftName, clearDraftName } from '@/lib/unsolvedCaseStorage'
+import { transformImageUrl } from '@/lib/image'
 import { getCourse } from '@/services/courses'
 
 function TiltCard({ children, className = '' }: { children: React.ReactNode; className?: string }) {
@@ -168,7 +169,7 @@ export default function DetectiveNamePage() {
                 <div className="bg-white rounded-xl shadow-lg border-2 border-[#c4a882] overflow-hidden"
                   style={{ width: 224, height: 148 }}>
                   <img
-                    src={courseImage}
+                    src={transformImageUrl(courseImage)}
                     alt="Gambar Kasus"
                     className="w-full h-full object-cover"
                     onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
