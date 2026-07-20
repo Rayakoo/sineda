@@ -154,6 +154,16 @@ function HomeSession({ data, onNavClick }: { data?: SessionData; onNavClick: (id
       </section>
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4 text-center">
+          <a
+            href="https://docs.google.com/forms/d/e/1FAIpQLScA4vgynX1K1oRXWy0IqF5VMnKvSaxRQaQuvtt9lxz-1UsXjA/viewform?usp=sharing&ouid=104245081589795121631"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-3 bg-gradient-to-r from-[#F7941E] to-[#e0861b] text-white text-xl md:text-2xl font-extrabold px-10 py-5 rounded-2xl shadow-2xl mb-14 hover:scale-105 hover:shadow-[0_0_30px_rgba(247,148,30,0.5)] transition-all duration-300 animate-pulse"
+          >
+            <i className="fas fa-pencil-alt text-2xl"></i>
+            PRE TEST SISWA
+            <i className="fas fa-external-link-alt text-lg opacity-70"></i>
+          </a>
           <h3 className="text-3xl font-bold text-gray-800 mb-12">Pilih Jalur Belajar</h3>
           <div className="grid md:grid-cols-3 gap-8 text-left">
             {modules.map((mod, i) => {
