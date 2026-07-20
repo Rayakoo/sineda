@@ -25,7 +25,9 @@ const TYPE_ICONS: Record<string, string> = {
   lainnya: 'fa-box text-gray-600',
 }
 
-type KontenData = Record<string, unknown>
+type KontenData = {
+  [key: string]: string | string[] | boolean | number | undefined
+}
 
 export default function UnsolvedCaseHintsEditor({ unsolvedCaseId }: Props) {
   const [hints, setHints] = useState<UnsolvedCaseHint[]>([])
@@ -69,7 +71,7 @@ export default function UnsolvedCaseHintsEditor({ unsolvedCaseId }: Props) {
     setFormKonten({})
   }
 
-  const updateKonten = (key: string, value: unknown) => {
+  const updateKonten = (key: string, value: string | string[] | boolean | number | undefined) => {
     setFormKonten((prev) => ({ ...prev, [key]: value }))
   }
 

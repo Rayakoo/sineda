@@ -1,5 +1,5 @@
 import { getSupabase, getAccessToken, apiFetch } from '@/lib/supabaseClient'
-import type { UnsolvedCase, UnsolvedCaseItem, UserDetective, UnsolvedCaseHint, UnsolvedCaseHintType } from '@/types/course'
+import type { UnsolvedCase, UnsolvedCaseItem, UserDetective, UnsolvedCaseHint, UnsolvedCaseHintPayload } from '@/types/course'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
@@ -86,7 +86,7 @@ export async function getHints(unsolvedCaseId: string): Promise<UnsolvedCaseHint
   return data || []
 }
 
-export async function createHint(input: Partial<UnsolvedCaseHint>): Promise<UnsolvedCaseHint> {
+export async function createHint(input: UnsolvedCaseHintPayload): Promise<UnsolvedCaseHint> {
   return apiFetch(`${SUPABASE_URL}/rest/v1/unsolved_case_hints?select=*`, {
     method: 'POST',
     headers: { ...(await authHeaders()), Prefer: 'return=representation' },
@@ -94,7 +94,7 @@ export async function createHint(input: Partial<UnsolvedCaseHint>): Promise<Unso
   })
 }
 
-export async function updateHint(id: string, input: Partial<UnsolvedCaseHint>): Promise<void> {
+export async function updateHint(id: string, input: Partial<UnsolvedCaseHintPayload>): Promise<void> {
   await fetch(`${SUPABASE_URL}/rest/v1/unsolved_case_hints?id=eq.${id}`, {
     method: 'PATCH',
     headers: { ...(await authHeaders()), Prefer: 'return=minimal' },

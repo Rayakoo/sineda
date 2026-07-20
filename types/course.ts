@@ -163,6 +163,10 @@ export type UnsolvedCaseHintLainnya = {
   jumlah: number
 }
 
+export type UnsolvedCaseHintPayload = Partial<Omit<UnsolvedCaseHint, 'konten'>> & {
+  konten: Record<string, unknown>
+}
+
 export type UnsolvedCaseHint = {
   id: string
   unsolved_case_id: string

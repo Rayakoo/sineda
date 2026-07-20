@@ -48,6 +48,7 @@ export default function CourseDetailPage() {
   }, [user, courseId]);
 
   const handleStart = async () => {
+    if (!course) return;
     if (course.type === 'unsolved_case') {
       router.push(`/unsolved-case/${course.id}`);
       return;

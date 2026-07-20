@@ -141,4 +141,5 @@ INSERT INTO siswa_intervensi (name, kode_password_hash) VALUES
   ('Muhammad Octo Alif Vanza Dewa', crypt('nphcqt', gen_salt('bf'))),
   ('Mukhammad Marvin Yuliansyah', crypt('xhgngw', gen_salt('bf'))),
   ('Nadiva Zahira Ramadhani', crypt('kqxrrt', gen_salt('bf'))),
-  ('Nilna Alfi Rizqiah', crypt('bcacvi', gen_salt('bf')));
+  ('Nilna Alfi Rizqiah', crypt('bcacvi', gen_salt('bf'))),
+  ('Siswa Tamu', crypt('berkunjung', gen_salt('bf')));
