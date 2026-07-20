@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { getCourse, createCourse, updateCourse, getCourseVideos, getCourseMaterials, getQuizzes, getCourseMinigames, deleteCourseVideo, deleteCourseMaterial, deleteQuiz, deleteCourseMinigame, saveSectionOrder } from '@/services/courses'
 import type { Course, CourseVideo, CourseMaterial, Quiz, CourseMinigame, OrderedSection } from '@/types/course'
 import FileUploader from '@/app/components/admin/FileUploader'
+import UnsolvedCaseEditor from '@/app/components/admin/UnsolvedCaseEditor'
 
 const CATEGORIES = [
   { value: 'guru', label: 'Guru', desc: 'Untuk tenaga pendidik' },
@@ -115,7 +116,7 @@ export default function CourseEditorPage() {
     try {
       const payload: Partial<Course> = {
         title: title.trim(),
-        slug: title.trim().toLowerCase().replace(/\s+/g, '-'),
+        slug: title.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
         description: description.trim(),
         category,
         type: courseType,
@@ -353,285 +354,291 @@ export default function CourseEditorPage() {
 
       {editMode && (
         <>
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6 mb-8">
-            <h2 className="font-bold text-lg text-gray-800 border-b border-gray-100 pb-3 flex items-center gap-2">
-              <i className="fas fa-layer-group text-[#005696]"></i> Konten Course
-            </h2>
+          {courseType === 'unsolved_case' ? (
+            <UnsolvedCaseEditor courseId={getActiveId()} courseTitle={title} />
+          ) : (
+            <>
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6 mb-8">
+                <h2 className="font-bold text-lg text-gray-800 border-b border-gray-100 pb-3 flex items-center gap-2">
+                  <i className="fas fa-layer-group text-[#005696]"></i> Konten Course
+                </h2>
 
-            <div className="space-y-3">
-              <h3 className="font-semibold text-sm text-gray-700 flex items-center gap-2">
-                <i className="fas fa-file-alt text-green-600"></i> Modul
-              </h3>
-              <div className="space-y-2">
-                {materials.length === 0 ? (
-                  <p className="text-sm text-gray-400 italic">Belum ada modul.</p>
-                ) : (
-                  [...materials]
-                    .sort((a, b) => a.urutan - b.urutan)
-                    .map((mod) => (
-                      <div
-                        key={mod.id}
-                        className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-4 py-3 hover:bg-green-100 transition-colors"
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <span className="w-6 h-6 rounded-full bg-green-200 text-xs font-bold text-green-700 flex items-center justify-center shrink-0">
-                            {mod.urutan}
-                          </span>
-                          <span className="text-sm font-medium text-gray-700 truncate">{mod.title}</span>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <Link
-                            href={`/admin/course/${getActiveId()}/module/${mod.id}`}
-                            className="text-blue-600 hover:text-blue-800 text-sm px-2 py-1 rounded hover:bg-white"
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-sm text-gray-700 flex items-center gap-2">
+                    <i className="fas fa-file-alt text-green-600"></i> Modul
+                  </h3>
+                  <div className="space-y-2">
+                    {materials.length === 0 ? (
+                      <p className="text-sm text-gray-400 italic">Belum ada modul.</p>
+                    ) : (
+                      [...materials]
+                        .sort((a, b) => a.urutan - b.urutan)
+                        .map((mod) => (
+                          <div
+                            key={mod.id}
+                            className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-4 py-3 hover:bg-green-100 transition-colors"
                           >
-                            <i className="fas fa-edit"></i>
-                          </Link>
-                          <button
-                            onClick={() => handleDeleteItem('materi', mod.id)}
-                            className="text-red-500 hover:text-red-700 text-sm px-2 py-1 rounded hover:bg-white"
-                          >
-                            <i className="fas fa-trash"></i>
-                          </button>
-                        </div>
-                      </div>
-                    ))
-                )}
-              </div>
-              <Link
-              href={`/admin/course/${getActiveId()}/module/new`}
-              className="inline-flex items-center gap-1.5 bg-[#F7941E] text-white text-xs font-semibold px-3 py-2 rounded-lg hover:bg-[#e0861b] transition-colors"
-            >
-              <i className="fas fa-plus"></i> Tambah Modul
-              </Link>
-            </div>
-
-            <hr className="border-gray-100" />
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-3">
-                <h3 className="font-semibold text-sm text-gray-700 flex items-center gap-2">
-                  <i className="fas fa-video text-blue-600"></i> Video
-                </h3>
-                <div className="space-y-2">
-                  {videos.length === 0 ? (
-                    <p className="text-sm text-gray-400 italic">Belum ada video.</p>
-                  ) : (
-                    [...videos]
-                      .sort((a, b) => a.urutan - b.urutan)
-                      .map((vid) => (
-                        <div
-                          key={vid.id}
-                          className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 hover:bg-blue-100 transition-colors"
-                        >
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div className="p-1.5 bg-white rounded border border-blue-100 text-blue-500">
-                              <i className="fas fa-video text-xs"></i>
+                            <div className="flex items-center gap-3 min-w-0">
+                              <span className="w-6 h-6 rounded-full bg-green-200 text-xs font-bold text-green-700 flex items-center justify-center shrink-0">
+                                {mod.urutan}
+                              </span>
+                              <span className="text-sm font-medium text-gray-700 truncate">{mod.title}</span>
                             </div>
-                            <div className="min-w-0">
-                              <h4 className="text-sm font-medium text-gray-700 truncate">{vid.title}</h4>
-                              <p className="text-[10px] text-gray-400 truncate">{vid.video_url}</p>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <Link
+                                href={`/admin/course/${getActiveId()}/module/${mod.id}`}
+                                className="text-blue-600 hover:text-blue-800 text-sm px-2 py-1 rounded hover:bg-white"
+                              >
+                                <i className="fas fa-edit"></i>
+                              </Link>
+                              <button
+                                onClick={() => handleDeleteItem('materi', mod.id)}
+                                className="text-red-500 hover:text-red-700 text-sm px-2 py-1 rounded hover:bg-white"
+                              >
+                                <i className="fas fa-trash"></i>
+                              </button>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            <Link
-                              href={`/admin/course/${getActiveId()}/video/${vid.id}`}
-                              className="text-blue-600 hover:text-blue-800 text-sm px-2 py-1 rounded hover:bg-white"
-                            >
-                              <i className="fas fa-edit"></i>
-                            </Link>
-                            <button
-                              onClick={() => handleDeleteItem('video', vid.id)}
-                              className="text-red-500 hover:text-red-700 text-sm px-2 py-1 rounded hover:bg-white"
-                            >
-                              <i className="fas fa-trash"></i>
-                            </button>
-                          </div>
-                        </div>
-                      ))
-                  )}
-                </div>
-                <Link
-                  href={`/admin/course/${getActiveId()}/video/new`}
-                  className="inline-flex items-center gap-1.5 bg-blue-600 text-white text-xs font-semibold px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  <i className="fas fa-plus"></i> Tambah Video
-                </Link>
-              </div>
-
-              <div className="space-y-3">
-                <h3 className="font-semibold text-sm text-gray-700 flex items-center gap-2">
-                  <i className="fas fa-question-circle text-purple-600"></i> Quiz
-                </h3>
-                <div className="space-y-2">
-                  {quizzes.length === 0 ? (
-                    <p className="text-sm text-gray-400 italic">Belum ada quiz.</p>
-                  ) : (
-                    [...quizzes]
-                      .sort((a, b) => a.urutan - b.urutan)
-                      .map((quiz) => (
-                        <div
-                          key={quiz.id}
-                          className="flex items-center justify-between bg-purple-50 border border-purple-200 rounded-lg px-4 py-3 hover:bg-purple-100 transition-colors"
-                        >
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div className="p-1.5 bg-white rounded border border-purple-100 text-purple-500">
-                              <i className="fas fa-question-circle text-xs"></i>
-                            </div>
-                            <div className="min-w-0">
-                              <h4 className="text-sm font-medium text-gray-700 truncate">{quiz.title}</h4>
-                              <p className="text-[10px] text-gray-400 truncate">{quiz.description || 'Tidak ada deskripsi'}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            <Link
-                              href={`/admin/course/${getActiveId()}/quiz/${quiz.id}`}
-                              className="text-blue-600 hover:text-blue-800 text-sm px-2 py-1 rounded hover:bg-white"
-                            >
-                              <i className="fas fa-edit"></i>
-                            </Link>
-                            <button
-                              onClick={() => handleDeleteItem('quiz', quiz.id)}
-                              className="text-red-500 hover:text-red-700 text-sm px-2 py-1 rounded hover:bg-white"
-                            >
-                              <i className="fas fa-trash"></i>
-                            </button>
-                          </div>
-                        </div>
-                      ))
-                  )}
-                </div>
-                <Link
-                  href={`/admin/course/${getActiveId()}/quiz/new`}
-                  className="inline-flex items-center gap-1.5 bg-purple-600 text-white text-xs font-semibold px-3 py-2 rounded-lg hover:bg-purple-700 transition-colors"
-                >
-                  <i className="fas fa-plus"></i> Tambah Quiz
-                </Link>
-              </div>
-            </div>
-
-            <hr className="border-gray-100" />
-
-            <div className="space-y-3">
-              <h3 className="font-semibold text-sm text-gray-700 flex items-center gap-2">
-                <i className="fas fa-gamepad text-orange-600"></i> Minigame
-              </h3>
-              <div className="space-y-2">
-                {minigames.length === 0 ? (
-                  <p className="text-sm text-gray-400 italic">Belum ada minigame.</p>
-                ) : (
-                  [...minigames]
-                    .sort((a, b) => a.urutan - b.urutan)
-                    .map((mg) => (
-                      <div
-                        key={mg.id}
-                        className="flex items-center justify-between bg-orange-50 border border-orange-200 rounded-lg px-4 py-3 hover:bg-orange-100 transition-colors"
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="p-1.5 bg-white rounded border border-orange-100 text-orange-500">
-                            <i className="fas fa-gamepad text-xs"></i>
-                          </div>
-                          <div className="min-w-0">
-                            <h4 className="text-sm font-medium text-gray-700 truncate">{mg.title}</h4>
-                            <p className="text-[10px] text-gray-400 truncate capitalize">{mg.type.replace(/_/g, ' ')}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <Link
-                            href={`/admin/course/${getActiveId()}/minigame/${mg.id}`}
-                            className="text-blue-600 hover:text-blue-800 text-sm px-2 py-1 rounded hover:bg-white"
-                          >
-                            <i className="fas fa-edit"></i>
-                          </Link>
-                          <button
-                            onClick={() => handleDeleteItem('minigame', mg.id)}
-                            className="text-red-500 hover:text-red-700 text-sm px-2 py-1 rounded hover:bg-white"
-                          >
-                            <i className="fas fa-trash"></i>
-                          </button>
-                        </div>
-                      </div>
-                    ))
-                )}
-              </div>
-              <Link
-                href={`/admin/course/${getActiveId()}/minigame/new`}
-                className="inline-flex items-center gap-1.5 bg-orange-600 text-white text-xs font-semibold px-3 py-2 rounded-lg hover:bg-orange-700 transition-colors"
-              >
-                <i className="fas fa-plus"></i> Tambah Minigame
-              </Link>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4 mb-8">
-            <div className="flex items-center justify-between">
-              <h2 className="font-bold text-lg text-gray-800 flex items-center gap-2">
-                <i className="fas fa-sort text-[#005696]"></i> Urutan Konten
-              </h2>
-              <button
-                type="button"
-                onClick={handleSaveOrder}
-                disabled={savingOrder}
-                className="flex items-center gap-1.5 bg-[#005696] text-white text-xs font-semibold px-4 py-2 rounded-lg hover:bg-[#003d6e] transition-colors disabled:opacity-50"
-              >
-                {savingOrder ? (
-                  <i className="fas fa-spinner fa-spin"></i>
-                ) : (
-                  <i className="fas fa-save"></i>
-                )}
-                Simpan Urutan
-              </button>
-            </div>
-            <p className="text-xs text-gray-400">Gunakan tombol panah untuk mengatur urutan konten.</p>
-
-            {orderedItems.length === 0 ? (
-              <p className="text-sm text-gray-400 italic text-center py-6">Belum ada konten.</p>
-            ) : (
-              <div className="space-y-1.5">
-                {orderedItems.map((item, index) => (
-                  <div
-                    key={`${item.type}-${item.id}`}
-                    className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5"
-                  >
-                    <span className="w-5 h-5 rounded-full bg-[#F7941E] text-[10px] font-bold text-gray-800 flex items-center justify-center shrink-0">
-                      {index + 1}
-                    </span>
-                    <span className={`text-[10px] font-semibold uppercase shrink-0 ${
-                      item.type === 'video' ? 'text-blue-600' :
-                      item.type === 'materi' ? 'text-green-600' :
-                      item.type === 'quiz' ? 'text-purple-600' :
-                      'text-orange-600'
-                    }`}>
-                      {item.type === 'video' ? 'Video' :
-                       item.type === 'materi' ? 'Materi' :
-                       item.type === 'quiz' ? 'Quiz' :
-                       'Game'}
-                    </span>
-                    <span className="text-sm text-gray-700 truncate flex-1">{item.title}</span>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => moveItem(index, -1)}
-                        disabled={index === 0}
-                        className="p-1 bg-[#005696] text-white rounded hover:bg-[#003d6e] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                        title="Naik"
-                      >
-                        <i className="fas fa-chevron-up text-xs"></i>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => moveItem(index, 1)}
-                        disabled={index === orderedItems.length - 1}
-                        className="p-1 bg-[#005696] text-white rounded hover:bg-[#003d6e] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                        title="Turun"
-                      >
-                        <i className="fas fa-chevron-down text-xs"></i>
-                      </button>
-                    </div>
+                        ))
+                    )}
                   </div>
-                ))}
+                  <Link
+                  href={`/admin/course/${getActiveId()}/module/new`}
+                  className="inline-flex items-center gap-1.5 bg-[#F7941E] text-white text-xs font-semibold px-3 py-2 rounded-lg hover:bg-[#e0861b] transition-colors"
+                >
+                  <i className="fas fa-plus"></i> Tambah Modul
+                  </Link>
+                </div>
+
+                <hr className="border-gray-100" />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <h3 className="font-semibold text-sm text-gray-700 flex items-center gap-2">
+                      <i className="fas fa-video text-blue-600"></i> Video
+                    </h3>
+                    <div className="space-y-2">
+                      {videos.length === 0 ? (
+                        <p className="text-sm text-gray-400 italic">Belum ada video.</p>
+                      ) : (
+                        [...videos]
+                          .sort((a, b) => a.urutan - b.urutan)
+                          .map((vid) => (
+                            <div
+                              key={vid.id}
+                              className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 hover:bg-blue-100 transition-colors"
+                            >
+                              <div className="flex items-center gap-3 min-w-0">
+                                <div className="p-1.5 bg-white rounded border border-blue-100 text-blue-500">
+                                  <i className="fas fa-video text-xs"></i>
+                                </div>
+                                <div className="min-w-0">
+                                  <h4 className="text-sm font-medium text-gray-700 truncate">{vid.title}</h4>
+                                  <p className="text-[10px] text-gray-400 truncate">{vid.video_url}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <Link
+                                  href={`/admin/course/${getActiveId()}/video/${vid.id}`}
+                                  className="text-blue-600 hover:text-blue-800 text-sm px-2 py-1 rounded hover:bg-white"
+                                >
+                                  <i className="fas fa-edit"></i>
+                                </Link>
+                                <button
+                                  onClick={() => handleDeleteItem('video', vid.id)}
+                                  className="text-red-500 hover:text-red-700 text-sm px-2 py-1 rounded hover:bg-white"
+                                >
+                                  <i className="fas fa-trash"></i>
+                                </button>
+                              </div>
+                            </div>
+                          ))
+                      )}
+                    </div>
+                    <Link
+                      href={`/admin/course/${getActiveId()}/video/new`}
+                      className="inline-flex items-center gap-1.5 bg-blue-600 text-white text-xs font-semibold px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <i className="fas fa-plus"></i> Tambah Video
+                    </Link>
+                  </div>
+
+                  <div className="space-y-3">
+                    <h3 className="font-semibold text-sm text-gray-700 flex items-center gap-2">
+                      <i className="fas fa-question-circle text-purple-600"></i> Quiz
+                    </h3>
+                    <div className="space-y-2">
+                      {quizzes.length === 0 ? (
+                        <p className="text-sm text-gray-400 italic">Belum ada quiz.</p>
+                      ) : (
+                        [...quizzes]
+                          .sort((a, b) => a.urutan - b.urutan)
+                          .map((quiz) => (
+                            <div
+                              key={quiz.id}
+                              className="flex items-center justify-between bg-purple-50 border border-purple-200 rounded-lg px-4 py-3 hover:bg-purple-100 transition-colors"
+                            >
+                              <div className="flex items-center gap-3 min-w-0">
+                                <div className="p-1.5 bg-white rounded border border-purple-100 text-purple-500">
+                                  <i className="fas fa-question-circle text-xs"></i>
+                                </div>
+                                <div className="min-w-0">
+                                  <h4 className="text-sm font-medium text-gray-700 truncate">{quiz.title}</h4>
+                                  <p className="text-[10px] text-gray-400 truncate">{quiz.description || 'Tidak ada deskripsi'}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <Link
+                                  href={`/admin/course/${getActiveId()}/quiz/${quiz.id}`}
+                                  className="text-blue-600 hover:text-blue-800 text-sm px-2 py-1 rounded hover:bg-white"
+                                >
+                                  <i className="fas fa-edit"></i>
+                                </Link>
+                                <button
+                                  onClick={() => handleDeleteItem('quiz', quiz.id)}
+                                  className="text-red-500 hover:text-red-700 text-sm px-2 py-1 rounded hover:bg-white"
+                                >
+                                  <i className="fas fa-trash"></i>
+                                </button>
+                              </div>
+                            </div>
+                          ))
+                      )}
+                    </div>
+                    <Link
+                      href={`/admin/course/${getActiveId()}/quiz/new`}
+                      className="inline-flex items-center gap-1.5 bg-purple-600 text-white text-xs font-semibold px-3 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                    >
+                      <i className="fas fa-plus"></i> Tambah Quiz
+                    </Link>
+                  </div>
+                </div>
+
+                <hr className="border-gray-100" />
+
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-sm text-gray-700 flex items-center gap-2">
+                    <i className="fas fa-gamepad text-orange-600"></i> Minigame
+                  </h3>
+                  <div className="space-y-2">
+                    {minigames.length === 0 ? (
+                      <p className="text-sm text-gray-400 italic">Belum ada minigame.</p>
+                    ) : (
+                      [...minigames]
+                        .sort((a, b) => a.urutan - b.urutan)
+                        .map((mg) => (
+                          <div
+                            key={mg.id}
+                            className="flex items-center justify-between bg-orange-50 border border-orange-200 rounded-lg px-4 py-3 hover:bg-orange-100 transition-colors"
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className="p-1.5 bg-white rounded border border-orange-100 text-orange-500">
+                                <i className="fas fa-gamepad text-xs"></i>
+                              </div>
+                              <div className="min-w-0">
+                                <h4 className="text-sm font-medium text-gray-700 truncate">{mg.title}</h4>
+                                <p className="text-[10px] text-gray-400 truncate capitalize">{mg.type.replace(/_/g, ' ')}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <Link
+                                href={`/admin/course/${getActiveId()}/minigame/${mg.id}`}
+                                className="text-blue-600 hover:text-blue-800 text-sm px-2 py-1 rounded hover:bg-white"
+                              >
+                                <i className="fas fa-edit"></i>
+                              </Link>
+                              <button
+                                onClick={() => handleDeleteItem('minigame', mg.id)}
+                                className="text-red-500 hover:text-red-700 text-sm px-2 py-1 rounded hover:bg-white"
+                              >
+                                <i className="fas fa-trash"></i>
+                              </button>
+                            </div>
+                          </div>
+                        ))
+                    )}
+                  </div>
+                  <Link
+                    href={`/admin/course/${getActiveId()}/minigame/new`}
+                    className="inline-flex items-center gap-1.5 bg-orange-600 text-white text-xs font-semibold px-3 py-2 rounded-lg hover:bg-orange-700 transition-colors"
+                  >
+                    <i className="fas fa-plus"></i> Tambah Minigame
+                  </Link>
+                </div>
               </div>
-            )}
-          </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4 mb-8">
+                <div className="flex items-center justify-between">
+                  <h2 className="font-bold text-lg text-gray-800 flex items-center gap-2">
+                    <i className="fas fa-sort text-[#005696]"></i> Urutan Konten
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={handleSaveOrder}
+                    disabled={savingOrder}
+                    className="flex items-center gap-1.5 bg-[#005696] text-white text-xs font-semibold px-4 py-2 rounded-lg hover:bg-[#003d6e] transition-colors disabled:opacity-50"
+                  >
+                    {savingOrder ? (
+                      <i className="fas fa-spinner fa-spin"></i>
+                    ) : (
+                      <i className="fas fa-save"></i>
+                    )}
+                    Simpan Urutan
+                  </button>
+                </div>
+                <p className="text-xs text-gray-400">Gunakan tombol panah untuk mengatur urutan konten.</p>
+
+                {orderedItems.length === 0 ? (
+                  <p className="text-sm text-gray-400 italic text-center py-6">Belum ada konten.</p>
+                ) : (
+                  <div className="space-y-1.5">
+                    {orderedItems.map((item, index) => (
+                      <div
+                        key={`${item.type}-${item.id}`}
+                        className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5"
+                      >
+                        <span className="w-5 h-5 rounded-full bg-[#F7941E] text-[10px] font-bold text-gray-800 flex items-center justify-center shrink-0">
+                          {index + 1}
+                        </span>
+                        <span className={`text-[10px] font-semibold uppercase shrink-0 ${
+                          item.type === 'video' ? 'text-blue-600' :
+                          item.type === 'materi' ? 'text-green-600' :
+                          item.type === 'quiz' ? 'text-purple-600' :
+                          'text-orange-600'
+                        }`}>
+                          {item.type === 'video' ? 'Video' :
+                           item.type === 'materi' ? 'Materi' :
+                           item.type === 'quiz' ? 'Quiz' :
+                           'Game'}
+                        </span>
+                        <span className="text-sm text-gray-700 truncate flex-1">{item.title}</span>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => moveItem(index, -1)}
+                            disabled={index === 0}
+                            className="p-1 bg-[#005696] text-white rounded hover:bg-[#003d6e] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                            title="Naik"
+                          >
+                            <i className="fas fa-chevron-up text-xs"></i>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => moveItem(index, 1)}
+                            disabled={index === orderedItems.length - 1}
+                            className="p-1 bg-[#005696] text-white rounded hover:bg-[#003d6e] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                            title="Turun"
+                          >
+                            <i className="fas fa-chevron-down text-xs"></i>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </>
       )}
 

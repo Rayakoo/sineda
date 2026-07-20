@@ -26,6 +26,9 @@ DROP TABLE IF EXISTS siswa_intervensi CASCADE;
 DROP TABLE IF EXISTS profiles CASCADE;
 DROP TABLE IF EXISTS education_levels CASCADE;
 DROP TABLE IF EXISTS categories CASCADE;
+DROP TABLE IF EXISTS unsolved_case_hints CASCADE;
+DROP TABLE IF EXISTS user_detectives CASCADE;
+DROP TABLE IF EXISTS unsolved_cases CASCADE;
 DROP TABLE IF EXISTS admin_profiles CASCADE;
 
 DROP TABLE IF EXISTS courses CASCADE;
@@ -245,6 +248,43 @@ CREATE TABLE IF NOT EXISTS siswa_intervensi (
 );
 
 -- =====================================================
+-- UNSOLVED CASE TABLES
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS unsolved_cases (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  course_id BIGINT NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  peraturan JSONB NOT NULL DEFAULT '[]'::jsonb,
+  instruksi JSONB NOT NULL DEFAULT '[]'::jsonb,
+  jawaban JSONB NOT NULL DEFAULT '[]'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE(course_id)
+);
+
+CREATE TABLE IF NOT EXISTS user_detectives (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  unsolved_case_id UUID NOT NULL REFERENCES unsolved_cases(id) ON DELETE CASCADE,
+  detective_name TEXT NOT NULL,
+  answers JSONB NOT NULL DEFAULT '[]'::jsonb,
+  is_completed BOOLEAN NOT NULL DEFAULT false,
+  completed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS unsolved_case_hints (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  unsolved_case_id UUID NOT NULL REFERENCES unsolved_cases(id) ON DELETE CASCADE,
+  urutan INTEGER NOT NULL DEFAULT 0,
+  tipe TEXT NOT NULL CHECK (tipe IN ('chat', 'karakter', 'buku', 'kartu', 'lainnya')),
+  konten JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- =====================================================
 -- TRIGGERS & FUNCTIONS
 -- =====================================================
 
@@ -297,7 +337,8 @@ BEGIN
     'user_courses','user_quiz_results','course_minigames',
     'minigame_tts','minigame_find_word','minigame_true_false',
     'minigame_drawing','minigame_fill_blank','minigame_match_pairs',
-    'minigame_match_pair_items','profiles','siswa_intervensi'
+    'minigame_match_pair_items','profiles','siswa_intervensi',
+    'unsolved_cases','unsolved_case_hints','user_detectives'
   ])
   LOOP
     EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY;', tbl);
@@ -362,6 +403,19 @@ CREATE POLICY "Public read siswa_intervensi" ON siswa_intervensi FOR SELECT USIN
 CREATE POLICY "Admin insert siswa_intervensi" ON siswa_intervensi FOR INSERT WITH CHECK (is_admin_profiles());
 CREATE POLICY "Admin update siswa_intervensi" ON siswa_intervensi FOR UPDATE USING (is_admin_profiles());
 CREATE POLICY "Admin delete siswa_intervensi" ON siswa_intervensi FOR DELETE USING (is_admin_profiles());
+
+-- UNSOLVED CASES
+CREATE POLICY "Public read unsolved_cases" ON unsolved_cases FOR SELECT USING (true);
+CREATE POLICY "Admin write unsolved_cases" ON unsolved_cases FOR ALL USING (is_admin() OR is_admin_profiles());
+
+-- USER DETECTIVES
+CREATE POLICY "Public insert user_detectives" ON user_detectives FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public read user_detectives" ON user_detectives FOR SELECT USING (true);
+CREATE POLICY "Admin manage user_detectives" ON user_detectives FOR ALL USING (is_admin() OR is_admin_profiles());
+
+-- UNSOLVED CASE HINTS
+CREATE POLICY "Public read unsolved_case_hints" ON unsolved_case_hints FOR SELECT USING (true);
+CREATE POLICY "Admin write unsolved_case_hints" ON unsolved_case_hints FOR ALL USING (is_admin() OR is_admin_profiles());
 
 -- =====================================================
 -- SEED DATA

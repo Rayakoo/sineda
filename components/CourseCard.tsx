@@ -8,7 +8,7 @@ interface Props {
 }
 
 export default function CourseCard({ course, href }: Props) {
-  const linkHref = href || `/course/${course.id}`;
+  const linkHref = href || (course.type === 'unsolved_case' ? `/unsolved-case/${course.id}` : `/course/${course.id}`);
 
   return (
     <Link
@@ -41,7 +41,7 @@ export default function CourseCard({ course, href }: Props) {
           {course.description}
         </p>
         <div className="w-full py-3 bg-[#F7941E] text-white rounded-xl font-bold hover:bg-[#e0861b] transition text-sm text-center mt-4 shrink-0">
-          Mulai Belajar
+          {course.type === 'unsolved_case' ? 'Mulai Investigasi' : 'Mulai Belajar'}
         </div>
       </div>
     </Link>

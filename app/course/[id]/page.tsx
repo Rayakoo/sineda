@@ -48,6 +48,10 @@ export default function CourseDetailPage() {
   }, [user, courseId]);
 
   const handleStart = async () => {
+    if (course.type === 'unsolved_case') {
+      router.push(`/unsolved-case/${course.id}`);
+      return;
+    }
     if (!user) {
       router.push("/auth/login");
       return;
