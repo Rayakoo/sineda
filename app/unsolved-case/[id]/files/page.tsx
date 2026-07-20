@@ -5,6 +5,7 @@ import { getDetectiveName, getConfirmed } from '@/lib/unsolvedCaseStorage'
 import type { UnsolvedCaseItem } from '@/types/course'
 import { getCourse } from '@/services/courses'
 import { getUnsolvedCase } from '@/services/unsolvedCase'
+import { transformImageUrl } from '@/lib/image'
 import { useState, useEffect, useRef, useCallback } from 'react'
 
 function TiltCard({ children, className = '' }: { children: React.ReactNode; className?: string }) {
@@ -114,7 +115,7 @@ export default function FilesPage() {
                             Peraturan #{i + 1}
                           </div>
                           <img
-                            src={item.content}
+                            src={transformImageUrl(item.content)}
                             alt={`Peraturan ${i + 1}`}
                             className="w-full h-auto rounded-xl shadow-md border-2 border-[#c4a882]"
                             style={{
@@ -159,7 +160,7 @@ export default function FilesPage() {
                             Instruksi #{i + 1}
                           </div>
                           <img
-                            src={item.content}
+                            src={transformImageUrl(item.content)}
                             alt={`Instruksi ${i + 1}`}
                             className="w-full h-auto rounded-xl shadow-md border-2 border-[#c4a882]"
                             style={{

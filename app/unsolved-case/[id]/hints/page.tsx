@@ -6,7 +6,7 @@ import { getHints, getUnsolvedCase } from '@/services/unsolvedCase'
 import { getCourse } from '@/services/courses'
 import { transformImageUrl } from '@/lib/image'
 import { getDetectiveName, getConfirmed, getRevealedHints, addRevealedHint } from '@/lib/unsolvedCaseStorage'
-import type { UnsolvedCaseHint, UnsolvedCaseHintType, UnsolvedCaseHintKartu } from '@/types/course'
+import type { UnsolvedCaseHint, UnsolvedCaseHintType, UnsolvedCaseHintBuku, UnsolvedCaseHintKartu } from '@/types/course'
 
 function TiltCard({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   const ref = useRef<HTMLDivElement>(null)
@@ -202,6 +202,9 @@ export default function HintsPage() {
   const [denied, setDenied] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState<UnsolvedCaseHintType | null>(null)
   const [selectedKartuId, setSelectedKartuId] = useState<string | null>(null)
+  const [selectedBukuId, setSelectedBukuId] = useState<string | null>(null)
+  const [bookOpen, setBookOpen] = useState(false)
+  const [bookPage, setBookPage] = useState(0)
   const [kartuPopup, setKartuPopup] = useState<{ konten: UnsolvedCaseHintKartu } | null>(null)
   const [hoveredHintType, setHoveredHintType] = useState<UnsolvedCaseHintType | null>(null)
 
@@ -264,13 +267,14 @@ export default function HintsPage() {
   if (selectedCategory) {
     const catHints = grouped[selectedCategory] || []
     const cfg = CATEGORY_CONFIG[selectedCategory]
+    const selectedBukuHint = selectedBukuId ? catHints.find(h => h.id === selectedBukuId) : undefined
 
     return (
       <>
       <div className="bg-[#f5efe6] rounded-2xl shadow-md border border-[#c4a882] overflow-hidden">
         <div className="bg-[#5c3d2e] text-white px-5 py-3 flex items-center gap-2">
           <button
-            onClick={() => { setSelectedCategory(null); setSelectedKartuId(null); setKartuPopup(null) }}
+            onClick={() => { setSelectedCategory(null); setSelectedKartuId(null); setSelectedBukuId(null); setBookOpen(false); setBookPage(0); setKartuPopup(null) }}
             className="hover:text-[#c4a882] transition-colors"
           >
             <i className="fas fa-arrow-left text-sm"></i>
@@ -280,7 +284,61 @@ export default function HintsPage() {
           <span className="text-xs text-[#c4a882] ml-auto font-mono">{catHints.length} petunjuk</span>
         </div>
         <div className="p-4 md:p-5 space-y-4">
-          {selectedCategory === 'kartu' && selectedKartuId ? null : (
+          {selectedCategory === 'buku' ? (
+            selectedBukuId && selectedBukuHint ? (
+              bookOpen ? (
+                <BukuReader
+                  konten={selectedBukuHint.konten as UnsolvedCaseHintBuku}
+                  onClose={() => { setBookOpen(false); setBookPage(0) }}
+                  onBack={() => setBookOpen(false)}
+                  pageIndex={bookPage}
+                  onPageChange={setBookPage}
+                />
+              ) : (
+                <BukuCoverPreview
+                  konten={selectedBukuHint.konten as UnsolvedCaseHintBuku}
+                  onOpenBook={() => setBookOpen(true)}
+                  onBack={() => { setSelectedBukuId(null); setBookOpen(false); setBookPage(0) }}
+                />
+              )
+            ) : (
+              catHints.map((hint) => (
+                <div key={hint.id}>
+                  {revealed.has(hint.id) ? (
+                    <button
+                      onClick={() => { setSelectedBukuId(hint.id); setBookOpen(false); setBookPage(0) }}
+                      className="w-full text-left bg-white border border-[#d4c4a8] rounded-xl px-4 py-3.5 hover:border-[#8b4513]/50 hover:shadow-[0_12px_24px_rgba(92,61,46,0.22)] transition-all group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-600 to-amber-800 flex items-center justify-center shrink-0">
+                          <i className="fas fa-book text-white text-sm"></i>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-sm text-[#3c2415] truncate">
+                            {(hint.konten as UnsolvedCaseHintBuku).judul_buku}
+                          </p>
+                          <p className="text-[10px] text-[#8b7355] mt-0.5">Klik untuk buka sampul buku</p>
+                        </div>
+                        <i className="fas fa-chevron-right text-[#c4a882] text-xs group-hover:translate-x-0.5 transition-transform"></i>
+                      </div>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => reveal(hint.id)}
+                      className="w-full flex items-center justify-between bg-white border border-[#d4c4a8] rounded-xl px-4 py-3 hover:border-[#8b4513]/40 transition-colors text-left group shadow-[0_12px_24px_rgba(92,61,46,0.22)] hover:shadow-[0_18px_30px_rgba(92,61,46,0.32)]"
+                    >
+                      <span className="text-sm font-medium text-[#8b7355] group-hover:text-[#5c3d2e] transition-colors">
+                        <i className="fas fa-lock mr-2 text-[#c4a882]"></i>
+                        Petunjuk {cfg.label}
+                      </span>
+                      <i className="fas fa-chevron-right text-[#c4a882] text-xs"></i>
+                    </button>
+                  )}
+                </div>
+              ))
+            )
+          ) : (
             catHints.map((hint) => (
               <div key={hint.id}>
                 {revealed.has(hint.id) || selectedCategory === 'kartu' ? (
@@ -452,6 +510,183 @@ function BukuContent({ konten }: { konten: any }) {
       {konten.isi_buku?.map((img: string, i: number) => (
         <img key={i} src={transformImageUrl(img)} alt={`Halaman ${i + 1}`} className="max-h-40 rounded-lg border border-[#d4c4a8]" />
       ))}
+    </div>
+  )
+}
+
+function BukuCoverPreview({ konten, onOpenBook, onBack }: { konten: UnsolvedCaseHintBuku; onOpenBook: () => void; onBack: () => void }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const pos = useRef({ x: window.innerWidth / 2, y: window.innerHeight / 2 })
+  const offset = useRef({ x: 0, y: 0 })
+  const [style, setStyle] = useState({ left: '50%', top: '50%' })
+  const [grabbing, setGrabbing] = useState(false)
+  const [zoomed, setZoomed] = useState(false)
+
+  useEffect(() => {
+    setStyle({ left: '50%', top: '50%' })
+  }, [])
+
+  useEffect(() => {
+    if (!grabbing) return
+    const move = (e: MouseEvent) => {
+      pos.current = { x: e.clientX - offset.current.x, y: e.clientY - offset.current.y }
+      setStyle({ left: pos.current.x + 'px', top: pos.current.y + 'px' })
+    }
+    const up = () => setGrabbing(false)
+    document.addEventListener('mousemove', move)
+    document.addEventListener('mouseup', up)
+    return () => { document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up) }
+  }, [grabbing])
+
+  return (
+    <div className="fixed inset-0 z-50 bg-[#3c2415]/60 backdrop-blur-sm" onClick={onBack}>
+      {grabbing && <style>{`body { user-select: none; }`}</style>}
+      <div
+        ref={ref}
+        className="absolute inline-flex flex-col items-center"
+        style={{
+          left: style.left,
+          top: style.top,
+          transform: style.left === '50%' ? 'translate(-50%, -50%)' : 'translate(0, 0)',
+          cursor: grabbing ? 'grabbing' : 'grab',
+        }}
+        onClick={(e) => e.stopPropagation()}
+        onMouseDown={(e) => {
+          const el = ref.current
+          if (!el) return
+          const rect = el.getBoundingClientRect()
+          offset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top }
+          pos.current = { x: rect.left, y: rect.top }
+          setGrabbing(true)
+        }}
+      >
+        <TiltCard>
+          <div className={`rounded-[28px] border-2 border-[#c4a882] bg-[#f8f1e5] p-3 shadow-[0_20px_40px_rgba(53,33,18,0.35)] transition-all duration-200 ${zoomed ? 'scale-110' : 'scale-100'}`}>
+            <div className="rounded-[20px] border border-[#d4c4a8] bg-white p-2 shadow-inner">
+              <img
+                src={transformImageUrl(konten.cover_buku)}
+                alt={konten.judul_buku}
+                className="w-[220px] max-w-[60vw] h-auto rounded-xl object-cover"
+              />
+            </div>
+          </div>
+        </TiltCard>
+        <div className="flex justify-center gap-2 mt-6 flex-wrap">
+          <button
+            onClick={() => setZoomed((prev) => !prev)}
+            className="text-[11px] text-white/90 hover:text-white bg-[#3c2415]/70 backdrop-blur-sm px-4 py-1.5 rounded-full font-semibold transition-colors flex items-center gap-1 shadow-md"
+          >
+            <i className={`fas fa-${zoomed ? 'compress' : 'expand'} text-[10px]`}></i>
+            {zoomed ? 'Perkecil' : 'Zoom'}
+          </button>
+          <button
+            onClick={onOpenBook}
+            className="text-[11px] text-white/90 hover:text-white bg-[#8b4513]/80 backdrop-blur-sm px-4 py-1.5 rounded-full font-semibold transition-colors flex items-center gap-1 shadow-md"
+          >
+            <i className="fas fa-book-open text-[10px]"></i>
+            Buka Buku
+          </button>
+          <button
+            onClick={onBack}
+            className="text-[11px] text-white/90 hover:text-white bg-[#3c2415]/70 backdrop-blur-sm px-4 py-1.5 rounded-full font-semibold transition-colors flex items-center gap-1 shadow-md"
+          >
+            <i className="fas fa-times text-[10px]"></i>
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function BukuReader({ konten, onClose, onBack, pageIndex, onPageChange }: {
+  konten: UnsolvedCaseHintBuku
+  onClose: () => void
+  onBack: () => void
+  pageIndex: number
+  onPageChange: (page: number) => void
+}) {
+  const [flipping, setFlipping] = useState(false)
+  const [turnDirection, setTurnDirection] = useState<'next' | 'prev' | null>(null)
+  const pages = konten.isi_buku || []
+  const currentPage = pages[Math.max(0, Math.min(pageIndex, pages.length - 1))] || konten.cover_buku
+
+  const turnPage = (direction: 'next' | 'prev') => {
+    if (flipping) return
+    const nextIndex = direction === 'next' ? pageIndex + 1 : pageIndex - 1
+    if (nextIndex < 0 || nextIndex >= pages.length) return
+
+    setTurnDirection(direction)
+    setFlipping(true)
+
+    window.setTimeout(() => {
+      onPageChange(nextIndex)
+      setFlipping(false)
+      setTurnDirection(null)
+    }, 180)
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <button
+          onClick={onBack}
+          className="text-xs font-semibold text-[#5c3d2e] bg-white/80 hover:bg-white border border-[#c4a882] rounded-full px-3 py-1.5 shadow-sm"
+        >
+          <i className="fas fa-arrow-left mr-1"></i>
+          Kembali
+        </button>
+        <div className="text-[11px] font-bold text-[#8b4513] bg-[#e8dcc8] px-3 py-1 rounded-full border border-[#c4a882]">
+          {pageIndex + 1} / {pages.length}
+        </div>
+        <button
+          onClick={onClose}
+          className="text-xs font-semibold text-[#5c3d2e] bg-white/80 hover:bg-white border border-[#c4a882] rounded-full px-3 py-1.5 shadow-sm"
+        >
+          <i className="fas fa-times mr-1"></i>
+          Tutup Buku
+        </button>
+      </div>
+
+      <div
+        className="relative mx-auto w-full max-w-[420px] rounded-[28px] border-2 border-[#c4a882] bg-[#f2e7d4] p-3 shadow-[0_18px_34px_rgba(92,61,46,0.2)]"
+        style={{ perspective: '1200px' }}
+      >
+        <div className="relative rounded-[22px] border border-[#d4c4a8] bg-[#faf6f0] p-3 shadow-inner">
+          <div className="absolute inset-y-0 left-0 w-1/2 rounded-l-[22px] border-r border-[#d4c4a8] bg-gradient-to-r from-white to-[#f5ede3] opacity-80" />
+          <div className="absolute inset-y-0 right-0 w-1/2 rounded-r-[22px] border-l border-[#d4c4a8] bg-gradient-to-l from-white to-[#f5ede3] opacity-80" />
+          <div className="relative z-10 flex items-center justify-center min-h-[420px] overflow-hidden rounded-[16px] bg-white">
+            <img
+              src={transformImageUrl(currentPage)}
+              alt={`Halaman buku ${pageIndex + 1}`}
+              className="max-h-[420px] w-auto object-contain rounded-[12px] transition-transform duration-200"
+              style={{
+                transform: flipping ? `perspective(1000px) rotateY(${turnDirection === 'next' ? -14 : 14}deg)` : 'perspective(1000px) rotateY(0deg)',
+                transformOrigin: turnDirection === 'next' ? 'left center' : 'right center',
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-center gap-2">
+        <button
+          onClick={() => turnPage('prev')}
+          disabled={pageIndex === 0 || flipping}
+          className="text-xs font-bold text-white bg-[#8b4513] hover:bg-[#6b3410] disabled:opacity-40 rounded-full px-4 py-2 shadow-[0_10px_20px_rgba(92,61,46,0.24)] transition-all"
+        >
+          <i className="fas fa-chevron-left mr-1"></i>
+          Prev
+        </button>
+        <button
+          onClick={() => turnPage('next')}
+          disabled={pageIndex >= pages.length - 1 || flipping}
+          className="text-xs font-bold text-white bg-[#8b4513] hover:bg-[#6b3410] disabled:opacity-40 rounded-full px-4 py-2 shadow-[0_10px_20px_rgba(92,61,46,0.24)] transition-all"
+        >
+          Next
+          <i className="fas fa-chevron-right ml-1"></i>
+        </button>
+      </div>
     </div>
   )
 }
