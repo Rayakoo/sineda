@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import { getHints, getUnsolvedCase } from '@/services/unsolvedCase'
 import { getCourse } from '@/services/courses'
@@ -17,30 +17,8 @@ import type {
 } from '@/types/course'
 
 function TiltCard({ children, className = '', style }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
-  const ref = useRef<HTMLDivElement>(null)
-
-  const handleMouse = useCallback((e: React.MouseEvent) => {
-    const el = ref.current
-    if (!el) return
-    const rect = el.getBoundingClientRect()
-    const x = (e.clientX - rect.left) / rect.width - 0.5
-    const y = (e.clientY - rect.top) / rect.height - 0.5
-    el.style.transform = `perspective(500px) rotateY(${x * 12}deg) rotateX(${-y * 12}deg)`
-  }, [])
-
-  const reset = useCallback(() => {
-    if (!ref.current) return
-    ref.current.style.transform = 'perspective(500px) rotateY(0deg) rotateX(0deg)'
-  }, [])
-
   return (
-    <div
-      ref={ref}
-      onMouseMove={handleMouse}
-      onMouseLeave={reset}
-      className={`transition-transform duration-150 ease-out ${className}`}
-      style={{ transformStyle: 'preserve-3d', ...style }}
-    >
+    <div className={className} style={style}>
       {children}
     </div>
   )
@@ -116,22 +94,6 @@ function DraggableKartuPopup({ konten, onClose }: { konten: UnsolvedCaseHintKart
 
 function KartuFlip({ konten, zoomed }: { konten: UnsolvedCaseHintKartu; zoomed?: boolean }) {
   const [flipped, setFlipped] = useState(false)
-  const tiltRef = useRef<HTMLDivElement>(null)
-
-  const handleMouse = useCallback((e: React.MouseEvent) => {
-    const el = tiltRef.current
-    if (!el) return
-    const rect = el.getBoundingClientRect()
-    const x = (e.clientX - rect.left) / rect.width - 0.5
-    const y = (e.clientY - rect.top) / rect.height - 0.5
-    el.style.transform = `rotateY(${x * 14}deg) rotateX(${-y * 14}deg)`
-  }, [])
-
-  const reset = useCallback(() => {
-    const el = tiltRef.current
-    if (!el) return
-    el.style.transform = 'rotateY(0deg) rotateX(0deg)'
-  }, [])
 
   return (
     <div
@@ -149,10 +111,7 @@ function KartuFlip({ konten, zoomed }: { konten: UnsolvedCaseHintKartu; zoomed?:
         }
       `}</style>
       <div
-        ref={tiltRef}
-        onMouseMove={handleMouse}
-        onMouseLeave={reset}
-        className="absolute inset-0 transition-transform duration-150 ease-out cursor-pointer"
+        className="absolute inset-0 cursor-pointer"
         style={{ transformStyle: 'preserve-3d' }}
         onClick={() => setFlipped(!flipped)}
       >
@@ -501,22 +460,42 @@ export default function HintsPage() {
             catHints.map((hint) => (
               <div key={hint.id}>
                 {revealed.has(hint.id) ? (
-                  <TiltCard>
-                    <div className="bg-white border border-[#c4a882] rounded-xl p-4 shadow-sm">
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="text-[10px] font-bold text-[#8b4513] bg-[#e8dcc8] px-2 py-0.5 rounded-full border border-[#c4a882]">
-                          <i className={`fas ${cfg.icon} mr-1`}></i>
-                          {cfg.label}
-                        </span>
+                    hint.tipe === 'kartu' ? (
+                      <button
+                        onClick={() => setSelectedKartuId(hint.id)}
+                        className="w-full text-left bg-white border border-[#d4c4a8] rounded-xl px-4 py-3.5 hover:border-[#8b4513]/50 hover:shadow-[0_12px_24px_rgba(92,61,46,0.22)] transition-all group"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shrink-0">
+                            <i className="fas fa-id-card text-white text-sm"></i>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-bold text-sm text-[#3c2415] truncate">
+                              {(hint.konten as UnsolvedCaseHintKartu).kartu_depan ? 'Kartu Identitas' : 'Kartu'}
+                            </p>
+                            <p className="text-[10px] text-[#8b7355] mt-0.5">Klik untuk buka kartu</p>
+                          </div>
+                          <i className="fas fa-chevron-right text-[#c4a882] text-xs group-hover:translate-x-0.5 transition-transform"></i>
+                        </div>
+                      </button>
+                    ) : (
+                      <TiltCard>
+                      <div className="bg-white border border-[#c4a882] rounded-xl p-4 shadow-sm">
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="text-[10px] font-bold text-[#8b4513] bg-[#e8dcc8] px-2 py-0.5 rounded-full border border-[#c4a882]">
+                            <i className={`fas ${cfg.icon} mr-1`}></i>
+                            {cfg.label}
+                          </span>
+                        </div>
+                        <div className="text-[#3c2415] text-sm leading-relaxed">
+                          {hint.tipe === 'chat' && <ChatContent konten={hint.konten as any} />}
+                          {hint.tipe === 'buku' && <BukuContent konten={hint.konten as any} />}
+                          {hint.tipe === 'karakter' && <KarakterContent konten={hint.konten as any} />}
+                          {hint.tipe === 'lainnya' && <LainnyaContent konten={hint.konten as any} />}
+                        </div>
                       </div>
-                      <div className="text-[#3c2415] text-sm leading-relaxed">
-                        {hint.tipe === 'chat' && <ChatContent konten={hint.konten as any} />}
-                        {hint.tipe === 'buku' && <BukuContent konten={hint.konten as any} />}
-                        {hint.tipe === 'karakter' && <KarakterContent konten={hint.konten as any} />}
-                        {hint.tipe === 'lainnya' && <LainnyaContent konten={hint.konten as any} />}
-                      </div>
-                    </div>
-                  </TiltCard>
+                    </TiltCard>
+                    )
                 ) : (
                   <button
                     type="button"

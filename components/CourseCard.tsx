@@ -59,6 +59,9 @@ export default function CourseCard({ course, href }: Props) {
               <div className="mt-4 text-[10px] text-[#5c3d2e] font-bold font-mono uppercase tracking-[0.25em]">
                 Sangat Rahasia
               </div>
+              <p className="text-[11px] text-[#5c3d2e] mt-2 italic leading-relaxed font-medium">
+                credit by paramytha magdalena sukarno putri and team
+              </p>
             </div>
           </div>
 

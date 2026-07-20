@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import { useNav } from '@/contexts/NavContext'
@@ -47,11 +47,11 @@ const staticSessions: SessionData[] = [
   },
   {
     key: 'guru', title: 'Workshop Guru Profesional',
-    subtitle: '"Selesaikan 3 Misi Pelatihan untuk Klaim Sertifikat Pendidik SINEDA"', hero_title: '', hero_description: '',
+    subtitle: '', hero_title: '', hero_description: '',
     modules: [
       { title: 'Modul: Strategi Kelas Aman', desc: 'Materi teknis identifikasi kekerasan seksual di lingkungan sekolah.', icon: 'book-open', color: 'blue' },
       { title: 'Workshop: Sinkronisasi Budaya Malang', desc: 'Integrasi nilai Topeng Malangan dalam edukasi anti-bullying.', icon: 'users', color: 'blue', badge: 'LIVE WORKSHOP' },
-      { title: 'Sertifikat Guru', desc: 'Misi belum lengkap (0/3)', icon: 'award', color: 'blue' },
+
     ],
   },
   {
@@ -59,14 +59,14 @@ const staticSessions: SessionData[] = [
     modules: [
       { title: 'Modul: Kenali Batasan', desc: 'Belajar menjaga diri dengan cara seru.', icon: 'graduation-cap', color: 'green' },
       { title: 'Flash Cards Edukasi', desc: '"Sentuhan boleh, sentuhan tidak boleh!"', icon: 'images', color: 'green' },
-      { title: 'Sertifikat Pahlawan Belum Tersedia', desc: '', icon: 'certificate', color: 'gray', disabled: true },
+
     ],
   },
   {
     key: 'orangtua', title: 'Portal Wali Murid', subtitle: '', hero_title: '', hero_description: '',
     modules: [
       { title: 'Modul: Perlindungan dari Rumah', desc: 'Cara mendeteksi perubahan perilaku anak dan pola asuh yang aman.', icon: 'home', color: 'orange' },
-      { title: 'Sertifikat Orang Tua Tangguh', desc: 'Diberikan setelah menyelesaikan modul pendampingan.', icon: 'award', color: 'orange' },
+
     ],
   },
 ]
@@ -202,11 +202,6 @@ function GuruSession({ data, courses }: { data?: SessionData; courses: Course[] 
           </div>
         )}
 
-        <div className="bg-blue-50 border-2 border-dashed border-blue-200 rounded-3xl flex flex-col items-center justify-center p-10 text-center max-w-sm mx-auto">
-          <i className="fas fa-award text-6xl text-blue-200 mb-4"></i>
-          <h4 className="font-bold text-xl text-blue-400">Sertifikat Guru</h4>
-          <p className="text-xs text-gray-400 mt-2 uppercase tracking-wider font-medium">Misi belum lengkap (0/3)</p>
-        </div>
       </div>
     </section>
   )
@@ -214,6 +209,9 @@ function GuruSession({ data, courses }: { data?: SessionData; courses: Course[] 
 
 function SiswaSession({ data, courses, user, authLoading }: { data?: SessionData; courses: Course[]; user: any; authLoading: boolean }) {
   const canAccess = user && (user.role === 'siswa_intervensi' || user.role === 'admin')
+  const [filter, setFilter] = useState<'all' | 'unsolved_case'>('all')
+  const gridRef = useRef<HTMLDivElement>(null)
+  const filteredCourses = filter === 'unsolved_case' ? courses.filter((c) => c.type === 'unsolved_case') : courses
 
   if (authLoading) {
     return (
@@ -249,9 +247,12 @@ function SiswaSession({ data, courses, user, authLoading }: { data?: SessionData
           <div className="flex-1">
             <h3 className="text-4xl font-black text-[#F7941E] mb-4 uppercase italic">Game: Unsolved Case</h3>
             <p className="text-gray-400 mb-6 italic">
-              &ldquo;Selesaikan misi investigasi kasus sekolah dan kumpulkan 1000 XP untuk mendapatkan Sertifikat Pahlawan Sekolah!&rdquo;
+              &ldquo;Selesaikan misi investigasi kasus sekolah dan kumpulkan 1000 XP!&rdquo;
             </p>
-            <button className="bg-[#F7941E] px-10 py-3 rounded-full font-extrabold hover:scale-105 transition">
+            <button
+              onClick={() => { setFilter('unsolved_case'); gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
+              className="bg-[#F7941E] px-10 py-3 rounded-full font-extrabold hover:scale-105 transition"
+            >
               MULAI MISI
             </button>
           </div>
@@ -260,26 +261,30 @@ function SiswaSession({ data, courses, user, authLoading }: { data?: SessionData
           </div>
         </div>
 
-        {courses.length > 0 && (
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-            {courses.map((course) => (
-              <CourseCard key={course.id} course={course} />
-            ))}
-          </div>
-        )}
-
-        {courses.length === 0 && (
-          <div className="text-center py-20 text-gray-400 mb-12">
-            <i className="fas fa-graduation-cap text-5xl mb-6 block"></i>
-            <p className="text-lg">Belum ada kursus untuk siswa.</p>
-          </div>
-        )}
-
-        <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl p-8 flex flex-col items-center justify-center text-center max-w-lg mx-auto opacity-60">
-          <i className="fas fa-certificate text-5xl text-gray-300 mb-3"></i>
-          <h4 className="font-bold text-base text-gray-400 uppercase tracking-wider">Sertifikat Pahlawan Belum Tersedia</h4>
-          <p className="text-[11px] text-gray-400 mt-2">Selesaikan misi game untuk mendapatkan sertifikat</p>
+        <div ref={gridRef}>
+          {filter === 'unsolved_case' && (
+            <div className="flex items-center justify-between mb-6">
+              <p className="text-sm text-gray-500 italic">Menampilkan kursus kasus misterius</p>
+              <button onClick={() => setFilter('all')}
+                className="px-4 py-2 rounded-xl bg-[#005696] text-white text-sm font-bold hover:bg-[#003d6e] transition-all shadow-sm">
+                Kembali
+              </button>
+            </div>
+          )}
+          {filteredCourses.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+              {filteredCourses.map((course) => (
+                <CourseCard key={course.id} course={course} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-20 text-gray-400 mb-12">
+              <i className="fas fa-graduation-cap text-5xl mb-6 block"></i>
+              <p className="text-lg">Belum ada kursus untuk siswa.</p>
+            </div>
+          )}
         </div>
+
       </div>
     </section>
   )
@@ -306,13 +311,6 @@ function OrangTuaSession({ data, courses }: { data?: SessionData; courses: Cours
           </div>
         )}
 
-        <div className="bg-white p-8 rounded-3xl border border-[#F7941E]/30 flex flex-col items-center justify-center text-center max-w-md mx-auto">
-          <div className="w-20 h-20 bg-[#F7941E]/10 rounded-full flex items-center justify-center mb-4">
-            <i className="fas fa-award text-4xl text-[#F7941E]"></i>
-          </div>
-          <h4 className="font-bold text-xl mb-2 text-gray-800">Sertifikat Orang Tua Tangguh</h4>
-          <p className="text-sm text-gray-500">Diberikan setelah menyelesaikan modul pendampingan.</p>
-        </div>
       </div>
     </section>
   )

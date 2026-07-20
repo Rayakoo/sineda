@@ -33,13 +33,6 @@ export default function OrangTuaPage() {
             </div>
           )}
 
-          <div className="bg-white p-8 rounded-3xl border border-[#F7941E]/30 flex flex-col items-center justify-center text-center max-w-md mx-auto">
-            <div className="w-20 h-20 bg-[#F7941E]/10 rounded-full flex items-center justify-center mb-4">
-              <i className="fas fa-award text-4xl text-[#F7941E]"></i>
-            </div>
-            <h4 className="font-bold text-xl mb-2 text-gray-800">Sertifikat Orang Tua Tangguh</h4>
-            <p className="text-sm text-gray-500">Diberikan setelah menyelesaikan modul pendampingan.</p>
-          </div>
         </div>
       </section>
   )

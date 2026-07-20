@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getCourse, getCachedCourse, getCourseVideos, getCourseMaterials, getQuizzes, getCourseMinigames } from "@/services/courses";
 import type { OrderedSection } from "@/types/course";
@@ -22,6 +22,7 @@ function getVideoEmbedUrl(url: string): string {
 export default function MateriDetail() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
   const courseId = params.id as string;
 
@@ -72,7 +73,11 @@ export default function MateriDetail() {
       combined.sort((a, b) => a.urutan - b.urutan);
       setSections(combined);
 
-      if (user) {
+      const sectionParam = searchParams.get("section");
+      if (sectionParam) {
+        const idx = combined.findIndex((s) => s.id === sectionParam);
+        if (idx >= 0) setActiveIdx(idx);
+      } else if (user) {
         try {
           const uc = await getUserCourse(user.id, courseId);
           if (uc && uc.current_urutan > 0) {
@@ -81,7 +86,11 @@ export default function MateriDetail() {
           } else {
             await enrollCourse(user.id, courseId).catch(() => {});
           }
+        } catch {}
+      }
 
+      if (user) {
+        try {
           const passedIds: string[] = [];
           for (const q of quiz) {
             const results = await getUserQuizResults(user.id, q.id);
@@ -218,9 +227,9 @@ export default function MateriDetail() {
                     </div>
                     <div className="px-6 md:px-10 pb-6 md:pb-10 overflow-y-auto max-h-[60vh]">
                       {materiTab === "materi" && mat.content && (
-                        <div
-                          className="text-sm md:text-base text-gray-700 font-normal leading-relaxed prose prose-sm max-w-none [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-1 [&_a]:text-blue-600 [&_a]:underline"
-                          dangerouslySetInnerHTML={{ __html: mat.content }}
+                  <div
+                    className="materi-content text-sm md:text-base text-gray-700 font-normal leading-relaxed prose prose-sm max-w-none [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-1 [&_a]:text-blue-600 [&_a]:underline"
+                    dangerouslySetInnerHTML={{ __html: mat.content }}
                           onClick={(e) => {
                             const target = e.target as HTMLElement;
                             if (target.tagName === "A") {
@@ -411,6 +420,7 @@ export default function MateriDetail() {
       <style jsx global>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .materi-content * { font-family: inherit !important; }
       `}</style>
     </div>
   );

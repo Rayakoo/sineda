@@ -20,9 +20,7 @@ export default function GuruPage() {
             Workshop Guru Profesional
             <span className="block w-16 h-1 bg-[#F7941E] rounded-full mt-2"></span>
           </h2>
-          <p className="text-gray-600 mb-10 italic font-medium text-sm">
-            &ldquo;Selesaikan 3 Misi Pelatihan untuk Klaim Sertifikat Pendidik SINEDA&rdquo;
-          </p>
+
 
           {courses.length === 0 ? (
             <div className="text-center py-20 text-gray-400">
@@ -37,11 +35,6 @@ export default function GuruPage() {
             </div>
           )}
 
-          <div className="bg-blue-50 border-2 border-dashed border-blue-200 rounded-3xl flex flex-col items-center justify-center p-10 text-center max-w-sm mx-auto">
-            <i className="fas fa-award text-6xl text-blue-200 mb-4"></i>
-            <h4 className="font-bold text-xl text-blue-400">Sertifikat Guru</h4>
-            <p className="text-xs text-gray-400 mt-2 uppercase tracking-wider font-medium">Misi belum lengkap (0/3)</p>
-          </div>
         </div>
       </section>
   )

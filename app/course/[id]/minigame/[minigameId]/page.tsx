@@ -4,8 +4,10 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { getMinigameById, getTtsClues, getFindWords, getTrueFalseItems, getDrawings, getFillBlanks, getMatchPairs, MINIGAME_TYPE_LABELS, type CourseMinigame, type TtsClue, type FindWord, type TrueFalseItem, type Drawing, type FillBlank, type MatchPairs, type MatchPairItem } from "@/services/course-minigames";
+import { getCourseSections } from "@/services/courses";
 import { transformImageUrl } from "@/lib/image";
 import { buildRandomFillGrid } from "@/lib/grid-utils";
+import type { OrderedSection } from "@/types/course";
 import TtsPlayer from "@/components/TtsPlayer";
 
 function DrawingCanvas({ drawings }: { drawings: Drawing[] }) {
@@ -617,6 +619,9 @@ function InteractiveFindWord({
   );
 }
 
+const TYPE_ICON: Record<string, string> = { video: 'fa-video', materi: 'fa-book-open', quiz: 'fa-question-circle', minigame: 'fa-gamepad' };
+const TYPE_LABEL: Record<string, string> = { video: 'Video', materi: 'Modul', quiz: 'Quiz', minigame: 'Mini Game' };
+
 export default function CourseMinigamePage() {
   const params = useParams();
   const router = useRouter();
@@ -625,6 +630,7 @@ export default function CourseMinigamePage() {
 
   const [mg, setMg] = useState<CourseMinigame | null>(null);
   const [loading, setLoading] = useState(true);
+  const [nextSection, setNextSection] = useState<OrderedSection | null>(null);
 
   const [ttsClues, setTtsClues] = useState<TtsClue[]>([]);
   const [findWords, setFindWords] = useState<FindWord[]>([]);
@@ -683,6 +689,10 @@ export default function CourseMinigamePage() {
       })
       .catch(() => router.push(`/course/${courseId}/materi`))
       .finally(() => setLoading(false));
+    getCourseSections(courseId).then((secs) => {
+      const idx = secs.findIndex((s) => s.type === 'minigame' && s.id === minigameId);
+      if (idx !== -1 && idx < secs.length - 1) setNextSection(secs[idx + 1]);
+    }).catch(() => {});
   }, [minigameId, courseId, router]);
 
   if (loading) {
@@ -695,16 +705,38 @@ export default function CourseMinigamePage() {
 
   if (!mg) return null;
 
+  const goNext = () => {
+    if (!nextSection) { router.push(`/course/${courseId}/materi`); return; }
+    if (nextSection.type === 'quiz') router.push(`/course/${courseId}/${nextSection.id}`);
+    else if (nextSection.type === 'minigame') router.push(`/course/${courseId}/minigame/${nextSection.id}`);
+    else router.push(`/course/${courseId}/materi?section=${nextSection.id}`);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800">
       <div className="max-w-6xl mx-auto px-4 md:px-6 pt-6 md:pt-8">
-        <Link
-          href={`/course/${courseId}/materi`}
-          className="inline-flex items-center gap-1 bg-[#005696] text-white px-5 py-2 rounded-xl text-sm font-medium hover:bg-[#003d6e] transition-all shadow-sm"
-        >
-          <i className="fas fa-chevron-left text-xs"></i>
-          Kembali
-        </Link>
+        {nextSection ? (
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <button onClick={goNext}
+              className="inline-flex items-center gap-2 bg-[#005696] text-white px-5 py-2 rounded-xl text-sm font-bold hover:bg-[#003d6e] transition-all shadow-sm active:scale-95"
+            >
+              Lanjut ke {TYPE_LABEL[nextSection.type]} Selanjutnya
+              <i className="fas fa-arrow-right text-xs"></i>
+            </button>
+            <p className="text-xs text-gray-400 flex items-center gap-1.5">
+              <i className={`fas ${TYPE_ICON[nextSection.type]} text-[10px]`}></i>
+              Selanjutnya: {nextSection.title}
+            </p>
+          </div>
+        ) : (
+          <Link
+            href={`/course/${courseId}/materi`}
+            className="inline-flex items-center gap-1 bg-[#005696] text-white px-5 py-2 rounded-xl text-sm font-medium hover:bg-[#003d6e] transition-all shadow-sm"
+          >
+            <i className="fas fa-chevron-left text-xs"></i>
+            Kembali
+          </Link>
+        )}
       </div>
 
       <main className="max-w-6xl mx-auto px-4 md:px-6 py-8">

@@ -11,6 +11,21 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ co
   }
 
   const supabase = await createAdminClient()
+
+  if (updates.current_urutan !== undefined) {
+    const { data: existing } = await supabase
+      .from('user_courses')
+      .select('current_urutan')
+      .eq('user_id', user_id)
+      .eq('course_id', courseId)
+      .maybeSingle()
+
+    const currentMax = existing?.current_urutan ?? 0
+    if (updates.current_urutan <= currentMax) {
+      return NextResponse.json(existing)
+    }
+  }
+
   const { data, error } = await supabase
     .from('user_courses')
     .update({ ...updates, updated_at: new Date().toISOString() })

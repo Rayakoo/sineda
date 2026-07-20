@@ -176,13 +176,7 @@ export default function CourseDetailPage() {
                 {isCompleted ? "Lihat Lagi" : isEnrolled ? "Lanjutkan" : "Mulai Belajar"}
                 <i className="fas fa-arrow-right text-sm"></i>
               </button>
-              <button
-                onClick={() => router.push(`/course/${courseId}/sertifikat`)}
-                className="inline-flex items-center justify-center gap-2 bg-[#005696] text-white px-6 py-4 rounded-2xl text-base font-bold hover:bg-[#003d6e] transition-all shadow-sm"
-              >
-                <i className="fas fa-certificate text-sm"></i>
-                Sertifikat
-              </button>
+  
             </div>
           </div>
         </div>

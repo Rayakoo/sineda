@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import Link from 'next/link'
 import CourseCard from '@/components/CourseCard'
@@ -9,12 +9,16 @@ import type { Course } from '@/types/course'
 export default function SiswaPage() {
   const { user, loading: authLoading } = useAuth()
   const [courses, setCourses] = useState<Course[]>([])
+  const [filter, setFilter] = useState<'all' | 'unsolved_case'>('all')
+  const gridRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     fetch('/api/courses?category=siswa&published=true').then((r) => r.json()).then((d) => {
       if (Array.isArray(d)) setCourses(d)
     }).catch(() => {})
   }, [])
+
+  const filteredCourses = filter === 'unsolved_case' ? courses.filter((c) => c.type === 'unsolved_case') : courses
 
   if (authLoading) {
     return (
@@ -48,9 +52,12 @@ export default function SiswaPage() {
             <div className="flex-1">
               <h3 className="text-4xl font-black text-[#F7941E] mb-4 uppercase italic">Game: Unsolved Case</h3>
               <p className="text-gray-400 mb-6 italic">
-                &ldquo;Selesaikan misi investigasi kasus sekolah dan kumpulkan 1000 XP untuk mendapatkan Sertifikat Pahlawan Sekolah!&rdquo;
+                &ldquo;Selesaikan misi investigasi kasus sekolah dan kumpulkan 1000 XP!&rdquo;
               </p>
-              <button className="bg-[#F7941E] px-10 py-3 rounded-full font-extrabold hover:scale-105 transition">
+              <button
+                onClick={() => { setFilter('unsolved_case'); gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
+                className="bg-[#F7941E] px-10 py-3 rounded-full font-extrabold hover:scale-105 transition"
+              >
                 MULAI MISI
               </button>
             </div>
@@ -59,26 +66,30 @@ export default function SiswaPage() {
             </div>
           </div>
 
-          {courses.length > 0 && (
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-              {courses.map((course) => (
-                <CourseCard key={course.id} course={course} />
-              ))}
-            </div>
-          )}
-
-          {courses.length === 0 && (
-            <div className="text-center py-20 text-gray-400 mb-12">
-              <i className="fas fa-graduation-cap text-5xl mb-6 block"></i>
-              <p className="text-lg">Belum ada kursus untuk siswa.</p>
-            </div>
-          )}
-
-          <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl p-8 flex flex-col items-center justify-center text-center max-w-lg mx-auto opacity-60">
-            <i className="fas fa-certificate text-5xl text-gray-300 mb-3"></i>
-            <h4 className="font-bold text-base text-gray-400 uppercase tracking-wider">Sertifikat Pahlawan Belum Tersedia</h4>
-            <p className="text-[11px] text-gray-400 mt-2">Selesaikan misi game untuk mendapatkan sertifikat</p>
+          <div ref={gridRef}>
+            {filter === 'unsolved_case' && (
+              <div className="flex items-center justify-between mb-6">
+                <p className="text-sm text-gray-500 italic">Menampilkan kursus kasus misterius</p>
+                <button onClick={() => setFilter('all')}
+                  className="px-4 py-2 rounded-xl bg-[#005696] text-white text-sm font-bold hover:bg-[#003d6e] transition-all shadow-sm">
+                  Kembali
+                </button>
+              </div>
+            )}
+            {filteredCourses.length > 0 ? (
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+                {filteredCourses.map((course) => (
+                  <CourseCard key={course.id} course={course} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-20 text-gray-400 mb-12">
+                <i className="fas fa-graduation-cap text-5xl mb-6 block"></i>
+                <p className="text-lg">Belum ada kursus untuk siswa.</p>
+              </div>
+            )}
           </div>
+
         </div>
       </section>
   )

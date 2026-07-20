@@ -42,6 +42,12 @@ export default function SiteHeader() {
         <div className="container mx-auto px-4 flex justify-between items-center text-xs text-gray-600">
           <div className="flex items-center gap-4">
             <img
+              src="/logo_um.jpeg"
+              alt="Diktisaintek"
+              className="h-8"
+            />
+            <span className="text-gray-400">|</span>
+            <img
               src="/logo_diktisaintek.jpeg"
               alt="Diktisaintek"
               className="h-8"

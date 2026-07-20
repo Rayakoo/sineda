@@ -30,18 +30,26 @@ export default function ModuleForm({ courseId, moduleData, onSuccess }: ModuleFo
     }
     setSaving(true);
     try {
+      const cleanContent = content.replace(/style\s*=\s*"[^"]*font-family[^"]*"/gi, 'style=""')
+        .replace(/style\s*=\s*'[^']*font-family[^']*'/gi, "style=''")
+        .replace(/style\s*=\s*"[^"]*font-size[^"]*"/gi, 'style=""')
+        .replace(/style\s*=\s*'[^']*font-size[^']*'/gi, "style=''")
+        .replace(/style\s*=\s*""\s*/g, '')
+        .replace(/style\s*=\s*''\s*/g, '')
+        .replace(/<font[^>]*>/gi, '')
+        .replace(/<\/font>/gi, '');
       if (isNew) {
         const sections = await getCourseSections(courseId);
         const urutan = sections.length > 0 ? Math.max(...sections.map((s) => s.urutan)) + 1 : 1;
         await createCourseMaterial({
           course_id: courseId,
           title,
-          content,
+          content: cleanContent,
           file_url: fileUrl || undefined,
           urutan,
         });
       } else {
-        await updateCourseMaterial(moduleData.id, { title, content, file_url: fileUrl || undefined });
+        await updateCourseMaterial(moduleData.id, { title, content: cleanContent, file_url: fileUrl || undefined });
       }
       onSuccess ? onSuccess() : router.push(`/admin/course/${courseId}`);
     } catch (err) {

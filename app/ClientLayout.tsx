@@ -8,8 +8,9 @@ import AccessibilityWidget from '@/components/AccessibilityWidget'
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const isAdmin = pathname.startsWith('/admin')
+  const isQuiz = /^\/course\/[^/]+\/[^/]+$/.test(pathname) && !pathname.endsWith('/materi') && !pathname.endsWith('/hasil')
 
-  if (isAdmin) return <>{children}</>
+  if (isAdmin || isQuiz) return <>{children}</>
 
   return (
     <>
