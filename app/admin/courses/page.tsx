@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { getAllCourses, getCourseStats, deleteCourse } from '@/services/courses'
+import { getAllCourses, getCourseStats, deleteCourse, saveCourseSortOrder } from '@/services/courses'
+import { Reorder } from 'framer-motion'
 import type { Course } from '@/types/course'
 
 const catColors: Record<string, string> = {
@@ -16,17 +17,13 @@ export default function AdminKelolaCourse() {
   const [courses, setCourses] = useState<Course[]>([])
   const [stats, setStats] = useState<{ total: number; published: number; draft: number; byCategory: Record<string, number> } | null>(null)
   const [loading, setLoading] = useState(true)
+  const [savingOrder, setSavingOrder] = useState(false)
   const [search, setSearch] = useState('')
 
   useEffect(() => {
     Promise.all([getAllCourses(), getCourseStats()])
       .then(([c, s]) => {
-        const sortedCourses = [...c].sort((a, b) => {
-          const aTime = new Date(a.created_at || 0).getTime()
-          const bTime = new Date(b.created_at || 0).getTime()
-          return bTime - aTime
-        })
-        setCourses(sortedCourses)
+        setCourses(c)
         setStats(s)
       })
       .catch(() => {})
@@ -45,13 +42,21 @@ export default function AdminKelolaCourse() {
     }
   }
 
-  const filtered = [...courses]
-    .sort((a, b) => {
-      const aTime = new Date(a.created_at || 0).getTime()
-      const bTime = new Date(b.created_at || 0).getTime()
-      return bTime - aTime
-    })
-    .filter((c) => c.title.toLowerCase().includes(search.toLowerCase()))
+  const handleSaveOrder = async () => {
+    setSavingOrder(true)
+    try {
+      const updates = courses.map((c, i) => ({ id: c.id, sort_order: i }))
+      await saveCourseSortOrder(updates)
+      const fresh = await getAllCourses()
+      setCourses(fresh)
+    } catch {
+      alert('Gagal menyimpan urutan')
+    } finally {
+      setSavingOrder(false)
+    }
+  }
+
+  const filtered = courses.filter((c) => c.title.toLowerCase().includes(search.toLowerCase()))
 
   if (loading) {
     return (
@@ -72,12 +77,28 @@ export default function AdminKelolaCourse() {
     <div className="min-h-full font-sans">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-[#333333]">Kelola Course</h1>
-        <button
-          onClick={() => router.push('/admin/course/new')}
-          className="flex items-center gap-1.5 px-5 py-2 text-sm font-semibold text-white bg-[#F7941E] hover:bg-[#e0861b] rounded-xl transition-colors shadow-sm"
-        >
-          <i className="fas fa-plus"></i> Tambah Course
-        </button>
+        <div className="flex items-center gap-2">
+          {courses.length > 0 && (
+            <button
+              onClick={handleSaveOrder}
+              disabled={savingOrder}
+              className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-[#005696] hover:bg-[#003d6e] rounded-xl transition-colors shadow-sm disabled:opacity-50"
+            >
+              {savingOrder ? (
+                <i className="fas fa-spinner fa-spin"></i>
+              ) : (
+                <i className="fas fa-save"></i>
+              )}
+              Simpan Urutan
+            </button>
+          )}
+          <button
+            onClick={() => router.push('/admin/course/new')}
+            className="flex items-center gap-1.5 px-5 py-2 text-sm font-semibold text-white bg-[#F7941E] hover:bg-[#e0861b] rounded-xl transition-colors shadow-sm"
+          >
+            <i className="fas fa-plus"></i> Tambah Course
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -109,21 +130,84 @@ export default function AdminKelolaCourse() {
           <div className="p-8 text-center text-sm text-gray-500">
             {search ? 'Course tidak ditemukan.' : 'Belum ada course.'}
           </div>
-        ) : (
+        ) : search ? (
           <div className="divide-y-2 divide-[#F1F5F9]">
             {filtered.map((course) => (
               <div
                 key={course.id}
-                className="flex flex-col md:flex-row md:items-center justify-between p-5 hover:bg-[#F8FAFC] transition-colors gap-4"
+                className="flex flex-col md:flex-row md:items-center justify-between p-5 hover:bg-[#F8FAFC] transition-colors gap-4 bg-white"
               >
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-base text-[#2C2C2C] mb-1 truncate">{course.title}</h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full capitalize ${catColors[course.category] || 'bg-gray-100 text-gray-600'}`}>
-                      {course.category}
-                    </span>
-                    <span className="text-xs text-gray-400">&bull;</span>
-                    <span className="text-xs text-gray-500">{course.type === 'self_paced' ? 'Belajar Mandiri' : course.type === 'interactive' ? 'Interaktif' : course.type === 'unsolved_case' ? 'Kasus Misterius' : course.type || '-'}</span>
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="min-w-0">
+                    <h3 className="font-bold text-base text-[#2C2C2C] mb-1 truncate">{course.title}</h3>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full capitalize ${catColors[course.category] || 'bg-gray-100 text-gray-600'}`}>
+                        {course.category}
+                      </span>
+                      <span className="text-xs text-gray-400">&bull;</span>
+                      <span className="text-xs text-gray-500">{course.type === 'self_paced' ? 'Belajar Mandiri' : course.type === 'interactive' ? 'Interaktif' : course.type === 'unsolved_case' ? 'Kasus Misterius' : course.type || '-'}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-6 justify-between md:justify-end shrink-0">
+                  <div className="w-24">
+                    {course.is_published ? (
+                      <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 text-xs font-semibold px-3 py-1.5 rounded-full shadow-sm">
+                        <i className="fas fa-check-circle text-xs"></i> Publish
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-700 text-xs font-semibold px-3 py-1.5 rounded-full shadow-sm">
+                        <i className="fas fa-pen text-xs"></i> Draft
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => router.push(`/admin/course/${course.id}`)}
+                      className="p-2 bg-[#005696] text-white rounded-lg hover:bg-[#003d6e] transition-colors"
+                      title="Edit"
+                    >
+                      <i className="fas fa-edit"></i>
+                    </button>
+                    <button
+                      onClick={() => handleDelete(course.id, course.title)}
+                      className="p-2 bg-[#005696] text-white rounded-lg hover:bg-red-600 transition-colors"
+                      title="Hapus"
+                    >
+                      <i className="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <Reorder.Group
+            axis="y"
+            values={courses}
+            onReorder={setCourses}
+            className="divide-y-2 divide-[#F1F5F9]"
+          >
+            {courses.map((course) => (
+              <Reorder.Item
+                key={course.id}
+                value={course}
+                layout
+                whileDrag={{ scale: 1.02, boxShadow: '0 4px 20px rgba(0,0,0,0.15)' }}
+                className="flex flex-col md:flex-row md:items-center justify-between p-5 hover:bg-[#F8FAFC] transition-colors gap-4 cursor-grab active:cursor-grabbing bg-white"
+                style={{ listStyle: 'none' }}
+              >
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <i className="fas fa-grip-vertical text-gray-300 shrink-0 cursor-grab active:cursor-grabbing text-base"></i>
+                  <div className="min-w-0">
+                    <h3 className="font-bold text-base text-[#2C2C2C] mb-1 truncate">{course.title}</h3>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full capitalize ${catColors[course.category] || 'bg-gray-100 text-gray-600'}`}>
+                        {course.category}
+                      </span>
+                      <span className="text-xs text-gray-400">&bull;</span>
+                      <span className="text-xs text-gray-500">{course.type === 'self_paced' ? 'Belajar Mandiri' : course.type === 'interactive' ? 'Interaktif' : course.type === 'unsolved_case' ? 'Kasus Misterius' : course.type || '-'}</span>
+                    </div>
                   </div>
                 </div>
 
@@ -157,9 +241,9 @@ export default function AdminKelolaCourse() {
                     </button>
                   </div>
                 </div>
-              </div>
+              </Reorder.Item>
             ))}
-          </div>
+          </Reorder.Group>
         )}
       </div>
     </div>

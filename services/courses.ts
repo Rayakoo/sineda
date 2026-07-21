@@ -352,6 +352,19 @@ export async function getNextUrutan(courseId: number): Promise<number> {
   return (rows?.[0]?.urutan || 0) + 1
 }
 
+export async function saveCourseSortOrder(courses: { id: number; sort_order: number }[]): Promise<void> {
+  const h = await authHeaders()
+  await Promise.all(
+    courses.map((c) =>
+      fetch(`${SUPABASE_URL}/rest/v1/courses?id=eq.${c.id}`, {
+        method: 'PATCH',
+        headers: { ...h, Prefer: 'return=minimal' },
+        body: JSON.stringify({ sort_order: c.sort_order }),
+      })
+    )
+  )
+}
+
 export async function getNextGlobalUrutanAndIncrement(courseId: string): Promise<number> {
   const tables = ['course_videos', 'course_materials', 'quizzes', 'course_minigames'] as const
   let maxUrutan = 0

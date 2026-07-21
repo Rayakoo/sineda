@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
+import { Reorder } from 'framer-motion'
 import { getCourse, createCourse, updateCourse, getCourseVideos, getCourseMaterials, getQuizzes, getCourseMinigames, deleteCourseVideo, deleteCourseMaterial, deleteQuiz, deleteCourseMinigame, saveSectionOrder } from '@/services/courses'
 import type { Course, CourseVideo, CourseMaterial, Quiz, CourseMinigame, OrderedSection } from '@/types/course'
 import FileUploader from '@/app/components/admin/FileUploader'
@@ -163,6 +164,14 @@ export default function CourseEditorPage() {
     }
   }
 
+  const applyOrder = (ordered: OrderedSection[]) => {
+    const newUrutan = ordered.map((item, i) => ({ ...item, urutan: i }))
+    setVideos(newUrutan.filter((i) => i.type === 'video').map((i) => ({ ...videos.find((v) => v.id === i.id)!, urutan: i.urutan })))
+    setMaterials(newUrutan.filter((i) => i.type === 'materi').map((i) => ({ ...materials.find((m) => m.id === i.id)!, urutan: i.urutan })))
+    setQuizzes(newUrutan.filter((i) => i.type === 'quiz').map((i) => ({ ...quizzes.find((q) => q.id === i.id)!, urutan: i.urutan })))
+    setMinigames(newUrutan.filter((i) => i.type === 'minigame').map((i) => ({ ...minigames.find((g) => g.id === i.id)!, urutan: i.urutan })))
+  }
+
   const moveItem = (index: number, direction: -1 | 1) => {
     const newOrder = [...orderedItems]
     const target = index + direction
@@ -170,17 +179,11 @@ export default function CourseEditorPage() {
     const temp = newOrder[index]
     newOrder[index] = newOrder[target]
     newOrder[target] = temp
-    const newUrutan = newOrder.map((item, i) => ({ ...item, urutan: i }))
+    applyOrder(newOrder)
+  }
 
-    const newVideos = newUrutan.filter((i) => i.type === 'video').map((i) => ({ ...videos.find((v) => v.id === i.id)!, urutan: i.urutan }))
-    const newMaterials = newUrutan.filter((i) => i.type === 'materi').map((i) => ({ ...materials.find((m) => m.id === i.id)!, urutan: i.urutan }))
-    const newQuizzes = newUrutan.filter((i) => i.type === 'quiz').map((i) => ({ ...quizzes.find((q) => q.id === i.id)!, urutan: i.urutan }))
-    const newMinigames = newUrutan.filter((i) => i.type === 'minigame').map((i) => ({ ...minigames.find((g) => g.id === i.id)!, urutan: i.urutan }))
-
-    setVideos(newVideos)
-    setMaterials(newMaterials)
-    setQuizzes(newQuizzes)
-    setMinigames(newMinigames)
+  const onReorderItems = (reordered: OrderedSection[]) => {
+    applyOrder(reordered)
   }
 
   const getActiveId = () => createdId || courseId
@@ -586,17 +589,27 @@ export default function CourseEditorPage() {
                     Simpan Urutan
                   </button>
                 </div>
-                <p className="text-xs text-gray-400">Gunakan tombol panah untuk mengatur urutan konten.</p>
+                <p className="text-xs text-gray-400">Seret (drag) item atau gunakan tombol panah untuk mengatur urutan konten.</p>
 
                 {orderedItems.length === 0 ? (
                   <p className="text-sm text-gray-400 italic text-center py-6">Belum ada konten.</p>
                 ) : (
-                  <div className="space-y-1.5">
+                  <Reorder.Group
+                    axis="y"
+                    values={orderedItems}
+                    onReorder={onReorderItems}
+                    className="space-y-1.5"
+                  >
                     {orderedItems.map((item, index) => (
-                      <div
+                      <Reorder.Item
                         key={`${item.type}-${item.id}`}
-                        className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5"
+                        value={item}
+                        layout
+                        whileDrag={{ scale: 1.02, boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}
+                        className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 cursor-grab active:cursor-grabbing"
+                        style={{ listStyle: 'none' }}
                       >
+                        <i className="fas fa-grip-vertical text-gray-300 shrink-0 cursor-grab active:cursor-grabbing text-sm"></i>
                         <span className="w-5 h-5 rounded-full bg-[#F7941E] text-[10px] font-bold text-gray-800 flex items-center justify-center shrink-0">
                           {index + 1}
                         </span>
@@ -632,9 +645,9 @@ export default function CourseEditorPage() {
                             <i className="fas fa-chevron-down text-xs"></i>
                           </button>
                         </div>
-                      </div>
+                      </Reorder.Item>
                     ))}
-                  </div>
+                  </Reorder.Group>
                 )}
               </div>
             </>
