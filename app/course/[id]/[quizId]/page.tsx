@@ -6,6 +6,7 @@ import { getQuiz, getQuizQuestions } from '@/services/courses'
 import { upsertQuizResult } from '@/services/userCourses'
 import { useAuth } from '@/contexts/AuthContext'
 import type { Quiz, QuizQuestion } from '@/types/course'
+import { transformImageUrl } from '@/lib/image'
 
 export default function QuizPage() {
   const params = useParams()
@@ -108,6 +109,15 @@ export default function QuizPage() {
         <div key={slideKey} style={{ animation: `slide-from-${slideInFrom} 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards` }}>
           <div className="bg-white rounded-2xl shadow-sm border p-6 mb-6">
             <p className="text-lg font-semibold text-gray-800 mb-4">{q.question_text}</p>
+            {q.image_url && (
+              <div className="relative w-full aspect-video mb-4 bg-gray-100 rounded-xl overflow-hidden">
+                <img
+                  src={transformImageUrl(q.image_url)}
+                  alt="Gambar soal"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+            )}
             <div className="space-y-3">
               {(q.options as string[]).filter(Boolean).map((opt, i) => {
                 const isLocked = locked.has(q.id)
