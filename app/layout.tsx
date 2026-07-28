@@ -13,7 +13,10 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "SINEDA",
   description: "Sistem Edukasi Aman berbasis Culturally Responsive MOOC",
-  icons: [{ rel: "icon", url: "/logo_sineda.png" }],
+  icons: [
+    { rel: "icon", url: "/logo_sineda.png", sizes: "any" },
+    { rel: "apple-touch-icon", url: "/logo_sineda.png" },
+  ],
 }
 
 export default function RootLayout({

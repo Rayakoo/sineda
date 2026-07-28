@@ -8,7 +8,7 @@ type AuthResponse = { user: { id: string; email: string } | null; session: unkno
 
 export function getSiswaSession(): { id: string; name: string; role: string } | null {
   if (typeof window === 'undefined') return null
-  const raw = localStorage.getItem(SISWA_SESSION_KEY)
+  const raw = sessionStorage.getItem(SISWA_SESSION_KEY)
   if (!raw) return null
   try { return JSON.parse(raw) } catch { return null }
 }
@@ -46,7 +46,7 @@ export async function siswaSignIn(name: string, kode: string): Promise<{ id: str
     throw new Error(err.error || 'Login gagal')
   }
   const data = await res.json()
-  localStorage.setItem(SISWA_SESSION_KEY, JSON.stringify(data.user))
+  sessionStorage.setItem(SISWA_SESSION_KEY, JSON.stringify(data.user))
   return data.user
 }
 
@@ -60,7 +60,7 @@ export async function signOut() {
   }
   const key = Object.keys(localStorage).find((k) => k.includes('-auth-token'))
   if (key) localStorage.removeItem(key)
-  localStorage.removeItem(SISWA_SESSION_KEY)
+  sessionStorage.removeItem(SISWA_SESSION_KEY)
 }
 
 export async function getCurrentUser(): Promise<{ id: string; email?: string; name?: string; role: string } | null> {

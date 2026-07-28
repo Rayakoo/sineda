@@ -5,7 +5,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getCourse, getCachedCourse, getCourseVideos, getCourseMaterials, getQuizzes, getCourseMinigames } from "@/services/courses";
 import type { OrderedSection } from "@/types/course";
-import { enrollCourse, updateProgress, getUserCourse, getUserQuizResults } from "@/services/userCourses";
+import { enrollCourse, updateProgress, completeCourse, getUserCourse, getUserQuizResults } from "@/services/userCourses";
 import { getProxiedUrl } from "@/services/garage";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Course, CourseVideo, CourseMaterial, Quiz, CourseMinigame } from "@/types/course";
@@ -37,6 +37,7 @@ export default function MateriDetail() {
   const [materiTab, setMateriTab] = useState<"materi" | "file">("materi");
   const [fileLoading, setFileLoading] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showQuizAlert, setShowQuizAlert] = useState(false);
 
   const activeSection = sections[activeIdx];
 
@@ -135,6 +136,17 @@ export default function MateriDetail() {
     } else {
       setActiveIdx(idx);
     }
+  };
+
+  const handleCompleteCourse = async () => {
+    if (!user) return;
+    const allQuizzesPassed = quizzes.length === 0 || quizzes.every((q) => completedIds.includes(q.id));
+    if (!allQuizzesPassed) {
+      setShowQuizAlert(true);
+      return;
+    }
+    await completeCourse(user.id, courseId);
+    router.push("/dashboard");
   };
 
   if (loading) {
@@ -327,6 +339,27 @@ export default function MateriDetail() {
             </div>
           </div>
 
+          {activeSection && activeIdx === sections.length - 1 && (
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-3xl p-8 shadow-md text-center">
+              <div className="text-5xl mb-4 text-green-600">
+                <i className="fas fa-trophy"></i>
+              </div>
+              <h3 className="text-xl md:text-2xl font-bold text-gray-800 mb-2">
+                Selamat anda telah menyelesaikan course {course?.title}
+              </h3>
+              <p className="text-gray-600 mb-6 text-sm">
+                Anda telah menyelesaikan seluruh materi dalam course ini.
+              </p>
+              <button
+                onClick={handleCompleteCourse}
+                className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-10 py-4 rounded-2xl text-lg font-extrabold hover:scale-105 transition-all shadow-lg"
+              >
+                <i className="fas fa-check-circle mr-2"></i>
+                Selesaikan Course
+              </button>
+            </div>
+          )}
+
           {course?.type === "interactive" && activeSection?.type !== "minigame" && minigames.length > 0 && (
             <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
               <h3 className="text-base font-bold text-gray-800 mb-4">Minigame</h3>
@@ -416,6 +449,26 @@ export default function MateriDetail() {
           </div>
         </div>
       </main>
+
+      {showQuizAlert && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-3xl p-8 max-w-md mx-4 shadow-2xl text-center">
+            <div className="text-5xl mb-4 text-red-500">
+              <i className="fas fa-exclamation-triangle"></i>
+            </div>
+            <h3 className="text-xl font-bold text-gray-800 mb-2">Quiz Belum Terselesaikan</h3>
+            <p className="text-gray-600 mb-6 text-sm">
+              Anda harus menyelesaikan semua quiz dengan nilai minimal 75 terlebih dahulu sebelum menyelesaikan course.
+            </p>
+            <button
+              onClick={() => setShowQuizAlert(false)}
+              className="bg-[#005696] text-white px-8 py-3 rounded-xl font-bold hover:bg-[#003d6e] transition"
+            >
+              Mengerti
+            </button>
+          </div>
+        </div>
+      )}
 
       <style jsx global>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
