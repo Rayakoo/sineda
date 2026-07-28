@@ -44,6 +44,7 @@ export async function GET() {
         current_urutan: e.current_urutan,
         is_completed: e.is_completed,
         completed_at: e.completed_at,
+        total_duration_seconds: e.total_duration_seconds ?? 0,
       }
     })
   }
@@ -58,6 +59,7 @@ export async function GET() {
         score: r.score,
         total: r.total,
         passed: r.passed,
+        duration_seconds: r.duration_seconds ?? 0,
         created_at: r.created_at,
       }
     })

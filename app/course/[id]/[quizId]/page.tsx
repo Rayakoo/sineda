@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { getQuiz, getQuizQuestions } from '@/services/courses'
 import { upsertQuizResult } from '@/services/userCourses'
@@ -21,6 +21,15 @@ export default function QuizPage() {
   const [loading, setLoading] = useState(true)
   const [slideKey, setSlideKey] = useState(0)
   const [slideInFrom, setSlideInFrom] = useState<'right' | 'left'>('right')
+  const startTimeRef = useRef(Date.now())
+  const [elapsed, setElapsed] = useState(0)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - startTimeRef.current) / 1000))
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [])
 
   useEffect(() => {
     getQuiz(params.quizId as string).then(setQuiz)
@@ -64,7 +73,8 @@ export default function QuizPage() {
       if (answers[question.id] === question.correct_answer) correct++
     })
     const score = Math.round((correct / questions.length) * 100)
-    await upsertQuizResult({ user_id: user.id, quiz_id: quiz.id, score, total: questions.length, passed: score >= 75 })
+    const duration_seconds = Math.floor((Date.now() - startTimeRef.current) / 1000)
+    await upsertQuizResult({ user_id: user.id, quiz_id: quiz.id, score, total: questions.length, passed: score >= 75, duration_seconds }).catch((e) => console.warn('[quiz timer] save error', e))
     router.push(`/course/${params.id}/${quiz.id}/hasil?score=${score}&total=${questions.length}&correct=${correct}`)
   }
 
@@ -85,7 +95,13 @@ export default function QuizPage() {
 
       <div className="max-w-2xl mx-auto px-4 py-8">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-800">{quiz?.title || 'Quiz'}</h1>
+          <div className="flex items-center justify-center gap-4 mb-2">
+            <h1 className="text-2xl font-bold text-gray-800">{quiz?.title || 'Quiz'}</h1>
+            <span className="bg-[#005696] text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5">
+              <i className="fas fa-clock text-[10px]"></i>
+              {String(Math.floor(elapsed / 60)).padStart(2, '0')}:{String(elapsed % 60).padStart(2, '0')}
+            </span>
+          </div>
           {quiz?.description && <p className="text-gray-500 text-sm mt-1">{quiz.description}</p>}
           <div className="flex items-center justify-center gap-2 mt-4">
             {questions.map((_, i) => (

@@ -2,6 +2,16 @@
 
 import { useEffect, useState, useMemo } from 'react'
 
+function fmtDuration(seconds: number): string {
+  if (!seconds) return '-'
+  const h = Math.floor(seconds / 3600)
+  const m = Math.floor((seconds % 3600) / 60)
+  const s = seconds % 60
+  if (h > 0) return `${h}h ${m}m`
+  if (m > 0) return `${m}m ${s}s`
+  return `${s}s`
+}
+
 type ReportUser = {
   id: string
   name: string
@@ -14,6 +24,7 @@ type ReportUser = {
     current_urutan: number
     is_completed: boolean
     completed_at: string | null
+    total_duration_seconds: number
   }[]
   quizResults: {
     quiz_id: string
@@ -22,6 +33,7 @@ type ReportUser = {
     score: number
     total: number
     passed: boolean
+    duration_seconds: number
     created_at: string
   }[]
 }
@@ -243,6 +255,9 @@ export default function AdminReportsPage() {
                                   {e.is_completed ? 'Selesai' : `${e.current_urutan}/${e.course_lessons}`}
                                 </span>
                               </div>
+                              <span className="text-[10px] text-gray-400 mt-1 flex items-center gap-1">
+                                <i className="fas fa-clock"></i> {fmtDuration(e.total_duration_seconds)}
+                              </span>
                             </div>
                             {e.is_completed && (
                               <span className="text-xs font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full shrink-0">Selesai</span>
@@ -270,6 +285,7 @@ export default function AdminReportsPage() {
                             <th className="px-4 py-2 font-semibold text-gray-600 text-center">Skor</th>
                             <th className="px-4 py-2 font-semibold text-gray-600 text-center">Jumlah Soal</th>
                             <th className="px-4 py-2 font-semibold text-gray-600 text-center">Nilai</th>
+                            <th className="px-4 py-2 font-semibold text-gray-600 text-center">Durasi</th>
                             <th className="px-4 py-2 font-semibold text-gray-600 text-center">Status</th>
                           </tr>
                         </thead>
@@ -281,6 +297,7 @@ export default function AdminReportsPage() {
                               <td className="px-4 py-3 text-center">{r.score}</td>
                               <td className="px-4 py-3 text-center">{r.total}</td>
                               <td className="px-4 py-3 text-center font-bold">{r.score}%</td>
+                              <td className="px-4 py-3 text-center text-xs text-gray-500">{fmtDuration(r.duration_seconds)}</td>
                               <td className="px-4 py-3 text-center">
                                 <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${r.passed ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                                   {r.passed ? 'Lulus' : 'Tidak Lulus'}

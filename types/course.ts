@@ -64,6 +64,7 @@ export type UserCourse = {
   current_urutan: number
   is_completed: boolean
   completed_at: string | null
+  total_duration_seconds: number
   created_at: string
   updated_at: string
 }
@@ -75,6 +76,7 @@ export type UserQuizResult = {
   score: number
   total: number
   passed: boolean
+  duration_seconds: number
   created_at: string
 }
 

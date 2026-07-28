@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getCourse, getCachedCourse, getCourseVideos, getCourseMaterials, getQuizzes, getCourseMinigames } from "@/services/courses";
 import type { OrderedSection } from "@/types/course";
-import { enrollCourse, updateProgress, completeCourse, getUserCourse, getUserQuizResults } from "@/services/userCourses";
+import { enrollCourse, updateProgress, completeCourse, getUserCourse, getUserQuizResults, saveCourseDuration } from "@/services/userCourses";
 import { getProxiedUrl } from "@/services/garage";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Course, CourseVideo, CourseMaterial, Quiz, CourseMinigame } from "@/types/course";
@@ -38,6 +38,10 @@ export default function MateriDetail() {
   const [fileLoading, setFileLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showQuizAlert, setShowQuizAlert] = useState(false);
+  const [courseElapsed, setCourseElapsed] = useState(0);
+  const courseAccumulatedRef = useRef(0);
+  const courseSessionStartRef = useRef<number | null>(null);
+  const [timerReady, setTimerReady] = useState(false);
 
   const activeSection = sections[activeIdx];
 
@@ -101,9 +105,70 @@ export default function MateriDetail() {
         } catch {}
       }
 
+      if (user) {
+        try {
+          const uc = await getUserCourse(user.id, courseId);
+          courseAccumulatedRef.current = uc?.total_duration_seconds ?? 0;
+          courseSessionStartRef.current = Date.now();
+          setCourseElapsed(courseAccumulatedRef.current);
+          setTimerReady(true);
+        } catch (e) {
+          console.warn('[course timer] init error', e);
+        }
+      }
+
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [courseId, user]);
+
+  const saveTimer = useCallback(() => {
+    if (!user || courseSessionStartRef.current === null) return;
+    const now = Date.now();
+    const sessionSeconds = Math.floor((now - courseSessionStartRef.current) / 1000);
+    if (sessionSeconds < 1) return;
+    courseAccumulatedRef.current += sessionSeconds;
+    courseSessionStartRef.current = now;
+    fetch(`/api/user-courses/${courseId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: user.id, total_duration_seconds: courseAccumulatedRef.current }),
+      keepalive: true,
+    }).catch((e) => console.warn('[course timer] save error', e));
+  }, [user, courseId]);
+
+  useEffect(() => {
+    if (!timerReady || !user) return;
+
+    const interval = setInterval(() => {
+      if (courseSessionStartRef.current !== null) {
+        setCourseElapsed(courseAccumulatedRef.current + Math.floor((Date.now() - courseSessionStartRef.current) / 1000));
+      }
+    }, 1000);
+
+    const autoSave = setInterval(() => saveTimer(), 10000);
+
+    const handleVisibility = () => {
+      if (document.hidden) {
+        saveTimer();
+      } else {
+        courseSessionStartRef.current = Date.now();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    const handleBeforeUnload = () => {
+      saveTimer();
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      clearInterval(interval);
+      clearInterval(autoSave);
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      saveTimer();
+    };
+  }, [timerReady, user, courseId, saveTimer]);
 
   const handleSectionClick = async (idx: number) => {
     const sec = sections[idx];
@@ -130,8 +195,10 @@ export default function MateriDetail() {
     }
 
     if (sec.type === "quiz") {
+      saveTimer();
       router.push(`/course/${courseId}/${sec.id}`);
     } else if (sec.type === "minigame") {
+      saveTimer();
       router.push(`/course/${courseId}/minigame/${sec.id}`);
     } else {
       setActiveIdx(idx);
@@ -163,13 +230,21 @@ export default function MateriDetail() {
         <Link href="/">
           <img src="/logo_sineda.png" alt="SINEDA" className="h-8" />
         </Link>
-        <Link
-          href={`/course/${courseId}`}
-          className="flex items-center gap-1 bg-[#005696] text-white px-5 py-2 rounded-xl text-sm font-medium hover:bg-[#003d6e] transition-all shadow-sm"
+        <div className="flex items-center gap-3">
+          {user && (
+            <span className="bg-white/70 text-[#005696] text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm">
+              <i className="fas fa-clock text-[10px]"></i>
+              {String(Math.floor(courseElapsed / 3600)).padStart(2, '0')}:{String(Math.floor((courseElapsed % 3600) / 60)).padStart(2, '0')}:{String(courseElapsed % 60).padStart(2, '0')}
+            </span>
+          )}
+          <Link
+            href={`/course/${courseId}`}
+            className="flex items-center gap-1 bg-[#005696] text-white px-5 py-2 rounded-xl text-sm font-medium hover:bg-[#003d6e] transition-all shadow-sm"
         >
           <i className="fas fa-chevron-left text-xs"></i>
           Kembali
         </Link>
+        </div>
       </nav>
 
       <main className="max-w-7xl mx-auto px-4 md:px-6 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">

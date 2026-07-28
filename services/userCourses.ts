@@ -22,7 +22,7 @@ export async function enrollCourse(userId: string, courseId: string): Promise<Us
 
 export async function getUserCourse(userId: string, courseId: string): Promise<UserCourse | null> {
   const courses = await apiFetch<UserCourse[]>(`/api/user-courses?user_id=${userId}`)
-  return courses.find((c) => c.course_id === courseId) || null
+  return courses.find((c) => String(c.course_id) === String(courseId)) || null
 }
 
 export async function getUserCourses(userId: string): Promise<(UserCourse & { courses: import('@/types/course').Course })[]> {
@@ -48,10 +48,17 @@ export async function getUserQuizResults(userId: string, quizId: string): Promis
   return all.filter((r) => r.quiz_id === quizId)
 }
 
-export async function upsertQuizResult(input: { user_id: string; quiz_id: string; score: number; total: number; passed: boolean }): Promise<void> {
+export async function upsertQuizResult(input: { user_id: string; quiz_id: string; score: number; total: number; passed: boolean; duration_seconds?: number }): Promise<void> {
   await apiFetch('/api/quiz-results', {
     method: 'POST',
     body: JSON.stringify(input),
+  })
+}
+
+export async function saveCourseDuration(userId: string, courseId: string, total_duration_seconds: number): Promise<void> {
+  await apiFetch(`/api/user-courses/${courseId}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ user_id: userId, total_duration_seconds }),
   })
 }
 

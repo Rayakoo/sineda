@@ -23,7 +23,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const body = await request.json()
-  const { user_id, quiz_id, score, total, passed } = body
+  const { user_id, quiz_id, score, total, passed, duration_seconds } = body
 
   if (!user_id || !quiz_id) {
     return NextResponse.json({ error: 'user_id dan quiz_id required' }, { status: 400 })
@@ -42,12 +42,12 @@ export async function POST(request: Request) {
   if (existing) {
     await supabase
       .from('user_quiz_results')
-      .update({ score, total, passed })
+      .update({ score, total, passed, duration_seconds })
       .eq('id', existing.id)
   } else {
     await supabase
       .from('user_quiz_results')
-      .insert({ user_id, quiz_id, score, total, passed })
+      .insert({ user_id, quiz_id, score, total, passed, duration_seconds })
   }
 
   return NextResponse.json({ success: true })
