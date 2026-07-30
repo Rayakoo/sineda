@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@/lib/supabase/client'
+import { signInWithGoogle } from '@/services/auth'
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('')
@@ -70,6 +71,21 @@ export default function AdminLoginPage() {
             className="w-full bg-[#005696] text-white font-bold py-2.5 rounded-lg hover:bg-[#003d6e] transition disabled:opacity-50"
           >
             {loading ? 'Memproses...' : 'Masuk'}
+          </button>
+
+          <div className="flex items-center gap-3 my-4">
+            <div className="flex-1 h-px bg-gray-200" />
+            <span className="text-sm text-gray-400">atau</span>
+            <div className="flex-1 h-px bg-gray-200" />
+          </div>
+
+          <button
+            type="button"
+            onClick={() => signInWithGoogle()}
+            className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-700 font-medium py-2.5 rounded-lg hover:bg-gray-50 transition"
+          >
+            <i className="fab fa-google text-red-500"></i>
+            Lanjutkan dengan Google
           </button>
         </form>
       </div>

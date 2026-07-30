@@ -1,4 +1,5 @@
 import { getValidToken, getAccessToken } from '@/lib/supabaseClient'
+import { createBrowserClient } from '@/lib/supabase/client'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
@@ -50,7 +51,19 @@ export async function siswaSignIn(name: string, kode: string): Promise<{ id: str
   return data.user
 }
 
+export async function signInWithGoogle() {
+  const supabase = createBrowserClient()
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${window.location.origin}/auth/callback`,
+    },
+  })
+  if (error) throw error
+}
+
 export async function signOut() {
+  // Try localStorage token (email/password login)
   const token = await getAccessToken().catch(() => null)
   if (token) {
     await fetch(`${SUPABASE_URL}/auth/v1/logout`, {
@@ -60,7 +73,25 @@ export async function signOut() {
   }
   const key = Object.keys(localStorage).find((k) => k.includes('-auth-token'))
   if (key) localStorage.removeItem(key)
+
+  // Try Supabase client signOut (Google OAuth via cookies)
+  const supabase = createBrowserClient()
+  await supabase.auth.signOut().catch(() => {})
+
   sessionStorage.removeItem(SISWA_SESSION_KEY)
+}
+
+async function fetchUserRole(userId: string, token: string): Promise<string> {
+  try {
+    const profileRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=role`, {
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${token}` },
+    })
+    if (profileRes.ok) {
+      const profiles = await profileRes.json()
+      return profiles[0]?.role || 'user'
+    }
+  } catch {}
+  return 'user'
 }
 
 export async function getCurrentUser(): Promise<{ id: string; email?: string; name?: string; role: string } | null> {
@@ -68,25 +99,29 @@ export async function getCurrentUser(): Promise<{ id: string; email?: string; na
   const siswa = getSiswaSession()
   if (siswa) return { id: siswa.id, name: siswa.name, role: siswa.role }
 
-  // Check Supabase auth
+  // 1. Try localStorage token (email/password login)
   const token = await getValidToken()
-  if (!token) return null
-  const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
-    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${token}` },
-  })
-  if (!res.ok) return null
-  const data = await res.json()
-  const user = data.id ? data : null
-  if (!user) return null
-  let role = 'user'
-  try {
-    const profileRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${user.id}&select=role`, {
+  if (token) {
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
       headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${token}` },
     })
-    if (profileRes.ok) {
-      const profiles = await profileRes.json()
-      role = profiles[0]?.role || 'user'
+    if (res.ok) {
+      const data = await res.json()
+      const user = data.id ? data : null
+      if (user) {
+        const role = await fetchUserRole(user.id, token)
+        return { id: user.id, email: user.email, role }
+      }
     }
-  } catch {}
-  return { id: user.id, email: user.email, role }
+  }
+
+  // 2. Try Supabase client session (Google OAuth login via cookies)
+  const supabase = createBrowserClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  if (session?.user) {
+    const role = await fetchUserRole(session.user.id, session.access_token)
+    return { id: session.user.id, email: session.user.email, role }
+  }
+
+  return null
 }

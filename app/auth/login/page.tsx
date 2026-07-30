@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { signIn, siswaSignIn } from '@/services/auth'
+import { signIn, siswaSignIn, signInWithGoogle } from '@/services/auth'
 import { useAuth } from '@/contexts/AuthContext'
 
 type Tab = 'admin' | 'siswa'
@@ -132,6 +132,25 @@ export default function LoginPage() {
           >
             {loading ? 'Memproses...' : 'Masuk'}
           </button>
+
+          {tab === 'admin' && (
+            <>
+              <div className="flex items-center gap-3 my-4">
+                <div className="flex-1 h-px bg-gray-200" />
+                <span className="text-sm text-gray-400">atau</span>
+                <div className="flex-1 h-px bg-gray-200" />
+              </div>
+
+              <button
+                type="button"
+                onClick={() => signInWithGoogle()}
+                className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-700 font-medium py-2.5 rounded-lg hover:bg-gray-50 transition"
+              >
+                <i className="fab fa-google text-red-500"></i>
+                Lanjutkan dengan Google
+              </button>
+            </>
+          )}
         </form>
       </div>
       </div>
