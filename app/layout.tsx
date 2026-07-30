@@ -11,8 +11,8 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: "SINEDA",
-  description: "Sistem Edukasi Aman berbasis Culturally Responsive MOOC",
+  title: "SINEDA - SMP Negeri 2 Singosari",
+  description: "Sistem Edukasi Aman (SINEDA) adalah platform pembelajaran digital berbasis Culturally Responsive MOOC yang dikembangkan untuk siswa SMP Negeri 2 Singosari, Kabupaten Malang.",
   icons: [
     { rel: "icon", url: "/logo_sineda.png", sizes: "any" },
     { rel: "apple-touch-icon", url: "/logo_sineda.png" },
