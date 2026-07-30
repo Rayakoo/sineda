@@ -9,7 +9,6 @@ import { enrollCourse, updateProgress, completeCourse, getUserCourse, getUserQui
 import { getProxiedUrl } from "@/services/garage";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Course, CourseVideo, CourseMaterial, Quiz, CourseMinigame } from "@/types/course";
-import { MINIGAME_TYPE_LABELS } from "@/services/course-minigames";
 
 function getVideoEmbedUrl(url: string): string {
   if (url.includes("youtube.com") || url.includes("youtu.be")) {
@@ -435,28 +434,6 @@ export default function MateriDetail() {
             </div>
           )}
 
-          {course?.type === "interactive" && activeSection?.type !== "minigame" && minigames.length > 0 && (
-            <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
-              <h3 className="text-base font-bold text-gray-800 mb-4">Minigame</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {minigames.map((mg) => (
-                  <button
-                    key={mg.id}
-                    onClick={() => router.push(`/course/${courseId}/minigame/${mg.id}`)}
-                    className="bg-pink-50 border border-pink-200 rounded-xl p-4 text-left hover:bg-pink-100 transition-colors shadow-sm"
-                  >
-                    <div className="flex items-center gap-2 mb-1">
-                      <i className="fas fa-gamepad text-pink-500 text-sm"></i>
-                      <span className="text-xs font-bold text-gray-700">{mg.title}</span>
-                    </div>
-                    <span className="text-[10px] text-gray-400 font-medium block">
-                      {MINIGAME_TYPE_LABELS[mg.type as keyof typeof MINIGAME_TYPE_LABELS] || mg.type}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
         <div className="w-full">
@@ -465,7 +442,7 @@ export default function MateriDetail() {
               Daftar Materi: {course?.title || ""}
             </div>
 
-            <div className="p-4 flex flex-col gap-6 max-h-[600px] overflow-y-auto no-scrollbar">
+            <div className="p-4 flex flex-col gap-6 max-h-[600px] overflow-y-auto sidebar-scroll">
               {sections.length === 0 ? (
                 <p className="text-xs text-blue-700/60 text-center py-8">Belum ada materi.</p>
               ) : (
@@ -546,8 +523,10 @@ export default function MateriDetail() {
       )}
 
       <style jsx global>{`
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+        .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-scroll::-webkit-scrollbar-thumb { background: #93c5fd; border-radius: 4px; }
+        .sidebar-scroll { scrollbar-width: thin; scrollbar-color: #93c5fd transparent; }
         .materi-content * { font-family: inherit !important; }
       `}</style>
     </div>
