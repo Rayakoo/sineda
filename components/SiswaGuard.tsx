@@ -14,7 +14,7 @@ export default function SiswaGuard({ children }: { children: React.ReactNode }) 
       return
     }
     setReady(true)
-  }, [loading, user, isAdmin])
+  }, [loading, user])
 
   if (!ready) {
     return (
