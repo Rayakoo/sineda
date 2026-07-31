@@ -15,7 +15,7 @@ export default function SiswaDashboard() {
 
   useEffect(() => {
     if (authLoading) return
-    if (!user || (user.role !== 'siswa_intervensi' && user.role !== 'admin')) {
+    if (!user) {
       router.replace('/auth/login')
       return
     }

@@ -26,7 +26,7 @@ export default function SiswaPage() {
     )
   }
 
-  const canAccess = user && (user.role === 'siswa_intervensi' || user.role === 'admin')
+  const canAccess = !!user
 
   if (!canAccess) {
     return (

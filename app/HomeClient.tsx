@@ -230,7 +230,7 @@ function GuruSession({ data, courses }: { data?: SessionData; courses: Course[] 
 }
 
 function SiswaSession({ data, courses, user, authLoading }: { data?: SessionData; courses: Course[]; user: any; authLoading: boolean }) {
-  const canAccess = user && (user.role === 'siswa_intervensi' || user.role === 'admin')
+  const canAccess = !!user
   const [filter, setFilter] = useState<'all' | 'unsolved_case'>('all')
   const gridRef = useRef<HTMLDivElement>(null)
   const filteredCourses = filter === 'unsolved_case' ? courses.filter((c) => c.type === 'unsolved_case') : courses
